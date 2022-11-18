@@ -26,6 +26,7 @@ pub const VirtualMachine = struct {
 
     pub fn execute_instruction(self: *Self, instruction: Instruction) VirtualMachineError!void {
         return switch (instruction) {
+            // Stack operations
             .Push => |value| try self.push(value),
             .Pop => _ = try self.pop(),
             .Dup => try self.push(try self.peek(-1)),
@@ -43,6 +44,25 @@ pub const VirtualMachine = struct {
                 try self.replace(-3, c);
                 try self.replace(-2, a);
                 try self.replace(-1, b);
+            },
+
+            // Arithmetic operations
+            .Add => try self.push(try self.pop() +% try self.pop()),
+            .Subtract => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(a -% b);
+            },
+            .Multiply => try self.push(try self.pop() *% try self.pop()),
+            .Divide => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(a / b);
+            },
+            .Modulo => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(a % b);
             },
         };
     }

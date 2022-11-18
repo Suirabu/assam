@@ -86,3 +86,68 @@ test "vm rot" {
     const snapshot = vm.get_snapshot();
     try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 20, 10, 15 }));
 }
+
+test "vm add" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 13 });
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction.Add);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{20}));
+}
+
+test "vm subtract" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 13 });
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction.Subtract);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{6}));
+}
+
+test "vm multiply" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 13 });
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction.Multiply);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{91}));
+}
+
+test "vm divide" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 13 });
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction.Divide);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{1}));
+}
+
+test "vm modulo" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 13 });
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction.Modulo);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{6}));
+}
