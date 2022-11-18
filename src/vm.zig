@@ -47,6 +47,12 @@ pub const VirtualMachine = struct {
         };
     }
 
+    pub fn get_snapshot(self: Self) VirtualMachineSnapshot {
+        return VirtualMachineSnapshot{
+            .data_stack = self.data_stack.items,
+        };
+    }
+
     fn push(self: *Self, value: Cell) VirtualMachineError!void {
         self.data_stack.append(value) catch {
             return VirtualMachineError.AllocationFailure;
@@ -88,4 +94,8 @@ pub const VirtualMachine = struct {
 pub const VirtualMachineError = error{
     AllocationFailure,
     StackUnderflow,
+};
+
+pub const VirtualMachineSnapshot = struct {
+    data_stack: []Cell,
 };

@@ -14,11 +14,11 @@ test "vm push" {
     var vm = VirtualMachine.init(arena.allocator());
     defer vm.deinit();
 
-    try testing.expect(vm.data_stack.items.len == 0);
+    try testing.expect(vm.get_snapshot().data_stack.len == 0);
     try vm.execute_instruction(Instruction{ .Push = 15 });
-    try testing.expect(vm.data_stack.items.len == 1);
+    try testing.expect(vm.get_snapshot().data_stack.len == 1);
     try vm.execute_instruction(Instruction{ .Push = 10 });
-    try testing.expect(vm.data_stack.items.len == 2);
+    try testing.expect(vm.get_snapshot().data_stack.len == 2);
 }
 
 test "vm pop" {
@@ -28,9 +28,9 @@ test "vm pop" {
     defer vm.deinit();
 
     try vm.execute_instruction(Instruction{ .Push = 15 });
-    try testing.expect(vm.data_stack.items.len == 1);
+    try testing.expect(vm.get_snapshot().data_stack.len == 1);
     try vm.execute_instruction(Instruction.Pop);
-    try testing.expect(vm.data_stack.items.len == 0);
+    try testing.expect(vm.get_snapshot().data_stack.len == 0);
     const result = vm.execute_instruction(Instruction.Pop);
     try testing.expectError(VirtualMachineError.StackUnderflow, result);
 }
@@ -43,7 +43,8 @@ test "vm dup" {
 
     try vm.execute_instruction(Instruction{ .Push = 10 });
     try vm.execute_instruction(Instruction.Dup);
-    try testing.expect(mem.eql(Cell, vm.data_stack.items, &[_]Cell{ 10, 10 }));
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 10, 10 }));
 }
 
 test "vm over" {
@@ -55,7 +56,8 @@ test "vm over" {
     try vm.execute_instruction(Instruction{ .Push = 10 });
     try vm.execute_instruction(Instruction{ .Push = 15 });
     try vm.execute_instruction(Instruction.Over);
-    try testing.expect(mem.eql(Cell, vm.data_stack.items, &[_]Cell{ 10, 15, 10 }));
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 10, 15, 10 }));
 }
 
 test "vm swap" {
@@ -67,7 +69,8 @@ test "vm swap" {
     try vm.execute_instruction(Instruction{ .Push = 15 });
     try vm.execute_instruction(Instruction{ .Push = 10 });
     try vm.execute_instruction(Instruction.Swap);
-    try testing.expect(mem.eql(Cell, vm.data_stack.items, &[_]Cell{ 10, 15 }));
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 10, 15 }));
 }
 
 test "vm rot" {
@@ -80,5 +83,6 @@ test "vm rot" {
     try vm.execute_instruction(Instruction{ .Push = 15 });
     try vm.execute_instruction(Instruction{ .Push = 20 });
     try vm.execute_instruction(Instruction.Rot);
-    try testing.expect(mem.eql(Cell, vm.data_stack.items, &[_]Cell{ 20, 10, 15 }));
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 20, 10, 15 }));
 }
