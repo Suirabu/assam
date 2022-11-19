@@ -6,7 +6,9 @@ const assam = @import("assam.zig");
 const VirtualMachine = assam.VirtualMachine;
 const VirtualMachineError = assam.VirtualMachineError;
 const Instruction = assam.Instruction;
+const InstructionTag = assam.InstructionTag;
 const Cell = assam.Cell;
+const BytecodeModule = assam.BytecodeModule;
 
 test "vm push" {
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
@@ -150,4 +152,41 @@ test "vm modulo" {
     try vm.execute_instruction(Instruction.Modulo);
     const snapshot = vm.get_snapshot();
     try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{6}));
+}
+
+test "Bytecode.from_bytes" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+
+    const bytes = "ABF" ++ &[_]u8{ 1, 2, 3, 0x11, 0x12, 0x10, 0, 0, 0, 0, 0, 0, 0, 10 };
+
+    const module = try BytecodeModule.from_bytes(bytes, arena.allocator());
+    try testing.expect(module.major_version == 1);
+    try testing.expect(module.minor_version == 2);
+    try testing.expect(module.patch_version == 3);
+    try testing.expect(module.instructions[0] == InstructionTag.Pop);
+    try testing.expect(module.instructions[1] == InstructionTag.Dup);
+    try testing.expect(module.instructions[2] == InstructionTag.Push);
+}
+
+test "Bytecode.to_bytes" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+
+    var instructions = [_]Instruction{
+        Instruction.Pop,
+        Instruction.Dup,
+        Instruction{ .Push = 10 },
+    };
+
+    const module = BytecodeModule{
+        .major_version = 1,
+        .minor_version = 2,
+        .patch_version = 3,
+        .instructions = instructions[0..],
+    };
+
+    const bytes = try module.to_bytes(arena.allocator());
+    const expected = "ABF" ++ &[_]u8{ 1, 2, 3, 0x11, 0x12, 0x10, 0, 0, 0, 0, 0, 0, 0, 10 };
+    try testing.expect(mem.eql(u8, bytes, expected));
 }
