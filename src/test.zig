@@ -154,6 +154,150 @@ test "vm modulo" {
     try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{6}));
 }
 
+test "vm equal" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction.Equal);
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction.Equal);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 1, 0 }));
+}
+
+test "vm less" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction.Less);
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction.Less);
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction.Less);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 0, 1, 0 }));
+}
+
+test "vm less equal" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction.LessEqual);
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction.LessEqual);
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction.LessEqual);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 1, 1, 0 }));
+}
+
+test "vm greater" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction.Greater);
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction.Greater);
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction.Greater);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 0, 0, 1 }));
+}
+
+test "vm greater equal" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction.GreaterEqual);
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction.GreaterEqual);
+    try vm.execute_instruction(Instruction{ .Push = 7 });
+    try vm.execute_instruction(Instruction{ .Push = 5 });
+    try vm.execute_instruction(Instruction.GreaterEqual);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 1, 0, 1 }));
+}
+
+test "vm and" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 1 });
+    try vm.execute_instruction(Instruction{ .Push = 0 });
+    try vm.execute_instruction(Instruction.And);
+    try vm.execute_instruction(Instruction{ .Push = 1 });
+    try vm.execute_instruction(Instruction{ .Push = 1 });
+    try vm.execute_instruction(Instruction.And);
+    try vm.execute_instruction(Instruction{ .Push = 0 });
+    try vm.execute_instruction(Instruction{ .Push = 0 });
+    try vm.execute_instruction(Instruction.And);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 0, 1, 0 }));
+}
+
+test "vm or" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 1 });
+    try vm.execute_instruction(Instruction{ .Push = 0 });
+    try vm.execute_instruction(Instruction.Or);
+    try vm.execute_instruction(Instruction{ .Push = 1 });
+    try vm.execute_instruction(Instruction{ .Push = 1 });
+    try vm.execute_instruction(Instruction.Or);
+    try vm.execute_instruction(Instruction{ .Push = 0 });
+    try vm.execute_instruction(Instruction{ .Push = 0 });
+    try vm.execute_instruction(Instruction.Or);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 1, 1, 0 }));
+}
+
+test "vm not" {
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    var vm = VirtualMachine.init(arena.allocator());
+    defer vm.deinit();
+
+    try vm.execute_instruction(Instruction{ .Push = 1 });
+    try vm.execute_instruction(Instruction.Not);
+    try vm.execute_instruction(Instruction{ .Push = 0 });
+    try vm.execute_instruction(Instruction.Not);
+    const snapshot = vm.get_snapshot();
+    try testing.expect(mem.eql(Cell, snapshot.data_stack, &[_]Cell{ 0, 1 }));
+}
+
 test "Bytecode.from_bytes" {
     var arena = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena.deinit();

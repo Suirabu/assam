@@ -16,6 +16,16 @@ pub const Instruction = union(InstructionTag) {
     Multiply,
     Divide,
     Modulo,
+
+    // Logical operations
+    Equal,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+    And,
+    Or,
+    Not,
 };
 
 pub const InstructionTag = enum(u8) {
@@ -34,6 +44,16 @@ pub const InstructionTag = enum(u8) {
     Divide = 0x23,
     Modulo = 0x24,
 
+    // Logical operations
+    Equal = 0x30,
+    Less = 0x31,
+    LessEqual = 0x32,
+    Greater = 0x33,
+    GreaterEqual = 0x34,
+    And = 0x35,
+    Or = 0x36,
+    Not = 0x37,
+
     const Self = @This();
 
     pub fn as_instruction(self: Self) Instruction {
@@ -49,6 +69,14 @@ pub const InstructionTag = enum(u8) {
             .Multiply => Instruction.Multiply,
             .Divide => Instruction.Divide,
             .Modulo => Instruction.Modulo,
+            .Equal => Instruction.Equal,
+            .Less => Instruction.Less,
+            .LessEqual => Instruction.LessEqual,
+            .Greater => Instruction.Greater,
+            .GreaterEqual => Instruction.GreaterEqual,
+            .And => Instruction.And,
+            .Or => Instruction.Or,
+            .Not => Instruction.Not,
         };
     }
 };

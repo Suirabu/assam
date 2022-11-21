@@ -64,6 +64,39 @@ pub const VirtualMachine = struct {
                 const a = try self.pop();
                 try self.push(a % b);
             },
+            // Logical operations
+            .Equal => try self.push(@boolToInt(try self.pop() == try self.pop())),
+            .Less => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(@boolToInt(a < b));
+            },
+            .LessEqual => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(@boolToInt(a <= b));
+            },
+            .Greater => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(@boolToInt(a > b));
+            },
+            .GreaterEqual => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(@boolToInt(a >= b));
+            },
+            .And => {
+                const a = try self.popBool();
+                const b = try self.popBool();
+                try self.push(if (a and b) 1 else 0);
+            },
+            .Or => {
+                const a = try self.popBool();
+                const b = try self.popBool();
+                try self.push(if (a or b) 1 else 0);
+            },
+            .Not => try self.push(@boolToInt(!try self.popBool())),
         };
     }
 
@@ -81,6 +114,10 @@ pub const VirtualMachine = struct {
 
     fn pop(self: *Self) VirtualMachineError!Cell {
         return self.data_stack.popOrNull() orelse VirtualMachineError.StackUnderflow;
+    }
+
+    fn popBool(self: *Self) VirtualMachineError!bool {
+        return try self.pop() != 0;
     }
 
     fn peek(self: Self, index: isize) VirtualMachineError!Cell {
