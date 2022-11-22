@@ -2,6 +2,9 @@ const assam = @import("assam.zig");
 const Cell = assam.Cell;
 
 pub const Instruction = union(InstructionTag) {
+    // Meta operations
+    Halt,
+
     // Stack operations
     Push: Cell,
     Pop,
@@ -29,6 +32,9 @@ pub const Instruction = union(InstructionTag) {
 };
 
 pub const InstructionTag = enum(u8) {
+    // Meta operations
+    Halt = 0x01,
+
     // Stack operations
     Push = 0x10,
     Pop = 0x11,

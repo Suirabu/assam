@@ -26,6 +26,9 @@ pub const VirtualMachine = struct {
 
     pub fn execute_instruction(self: *Self, instruction: Instruction) VirtualMachineError!void {
         return switch (instruction) {
+            // Meta operations
+            .Halt => return,
+
             // Stack operations
             .Push => |value| try self.push(value),
             .Pop => _ = try self.pop(),
