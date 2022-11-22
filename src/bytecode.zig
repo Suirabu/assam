@@ -13,7 +13,7 @@ pub const BytecodeModule = struct {
     major_version: u8,
     minor_version: u8,
     patch_version: u8,
-    instructions: []Instruction,
+    code: []const u8,
 
     pub fn from_bytes(bytes: []const u8, allocator: Allocator) !Self {
         var module: Self = undefined;
@@ -32,23 +32,8 @@ pub const BytecodeModule = struct {
         module.minor_version = try reader.readByte();
         module.patch_version = try reader.readByte();
 
-        var instruction_list = std.ArrayList(Instruction).init(allocator);
-
-        // Decode instructions
-        while (true) {
-            // Attempt to read next byte, breaking out of our while loop if we have reached the end of `bytes`
-            const opcode = reader.readByte() catch {
-                break;
-            };
-
-            const tag = @intToEnum(InstructionTag, opcode);
-            try instruction_list.append(switch (tag) {
-                .Push => Instruction{ .Push = try reader.readIntBig(u64) },
-                else => |tag| tag.as_instruction(),
-            });
-        }
-
-        module.instructions = instruction_list.items;
+        // Get code section contents
+        module.code = try reader.readAllAlloc(allocator, std.math.maxInt(u64));
         return module;
     }
 
@@ -60,14 +45,7 @@ pub const BytecodeModule = struct {
         try writer.writeByte(self.major_version);
         try writer.writeByte(self.minor_version);
         try writer.writeByte(self.patch_version);
-        for (self.instructions) |instruction| {
-            const tag: InstructionTag = instruction;
-            try writer.writeByte(@enumToInt(tag));
-            switch (instruction) {
-                .Push => |value| try writer.writeIntBig(u64, value),
-                else => {},
-            }
-        }
+        try writer.writeAll(self.code);
 
         return byte_list.items;
     }

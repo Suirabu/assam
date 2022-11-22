@@ -39,9 +39,7 @@ pub fn main() !void {
     var vm = assam.VirtualMachine.init(arena.allocator());
     defer vm.deinit();
 
-    for (module.instructions) |instruction| {
-        try vm.execute_instruction(instruction);
-    }
+    try vm.execute_code(module.code);
 
     const snapshot = vm.get_snapshot();
     std.debug.print("VM output: {any}\n", .{snapshot.data_stack});
