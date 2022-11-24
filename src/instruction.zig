@@ -1,6 +1,8 @@
+const Value = @import("assam.zig").Value;
+
 pub const Instruction = union(InstructionTag) {
     // Stack operations
-    Push: u64,
+    Push: Value,
     Drop,
 
     // Arithmetic operations

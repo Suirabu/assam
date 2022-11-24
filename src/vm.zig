@@ -3,16 +3,18 @@ const Allocator = std.mem.Allocator;
 
 const assam = @import("assam.zig");
 const Instruction = assam.Instruction;
+const Value = assam.Value;
+const ValueTag = assam.ValueTag;
 
 pub const VirtualMachine = struct {
     const Self = @This();
 
-    data_stack: std.ArrayList(u64),
+    data_stack: std.ArrayList(Value),
     allocator: Allocator,
 
     pub fn init(allocator: Allocator) Self {
         return Self{
-            .data_stack = std.ArrayList(u64).init(allocator),
+            .data_stack = std.ArrayList(Value).init(allocator),
             .allocator = allocator,
         };
     }
@@ -28,56 +30,68 @@ pub const VirtualMachine = struct {
             .Drop => _ = try self.pop(),
 
             // Arithmetic operations
-            .Add => try self.push(try self.pop() +% try self.pop()),
+            .Add => try self.pushInt(try self.popInt() +% try self.popInt()),
             .Subtract => {
-                const b = try self.pop();
-                const a = try self.pop();
-                try self.push(a -% b);
+                const b = try self.popInt();
+                const a = try self.popInt();
+                try self.pushInt(a -% b);
             },
-            .Multiply => try self.push(try self.pop() *% try self.pop()),
+            .Multiply => try self.pushInt(try self.popInt() *% try self.popInt()),
             .Divide => {
-                const b = try self.pop();
+                const b = try self.popInt();
                 if (b == 0) {
                     return VirtualMachineError.DivideByZero;
                 }
-                const a = try self.pop();
-                try self.push(a / b);
+                const a = try self.popInt();
+                try self.pushInt(a / b);
             },
             .Modulo => {
-                const b = try self.pop();
+                const b = try self.popInt();
                 if (b == 0) {
                     return VirtualMachineError.DivideByZero;
                 }
-                const a = try self.pop();
-                try self.push(a % b);
+                const a = try self.popInt();
+                try self.pushInt(a % b);
             },
 
             // Bitwise operations
-            .BitwiseAnd => try self.push(try self.pop() & try self.pop()),
-            .BitwiseOr => try self.push(try self.pop() | try self.pop()),
-            .BitwiseXor => try self.push(try self.pop() ^ try self.pop()),
-            .BitwiseNot => try self.push(~try self.pop()),
+            .BitwiseAnd => try self.pushInt(try self.popInt() & try self.popInt()),
+            .BitwiseOr => try self.pushInt(try self.popInt() | try self.popInt()),
+            .BitwiseXor => try self.pushInt(try self.popInt() ^ try self.popInt()),
+            .BitwiseNot => try self.pushInt(~try self.popInt()),
             .ShiftLeft => {
-                const b = try self.pop();
-                const a = try self.pop();
-                try self.push(a << @intCast(u6, b));
+                const b = try self.popInt();
+                const a = try self.popInt();
+                try self.pushInt(a << @intCast(u6, b));
             },
             .ShiftRight => {
-                const b = try self.pop();
-                const a = try self.pop();
-                try self.push(a << @intCast(u6, b));
+                const b = try self.popInt();
+                const a = try self.popInt();
+                try self.pushInt(a << @intCast(u6, b));
             },
         }
     }
 
-    fn push(self: *Self, value: u64) VirtualMachineError!void {
+    fn push(self: *Self, value: Value) VirtualMachineError!void {
         self.data_stack.append(value) catch {
             return VirtualMachineError.OutOfMemory;
         };
     }
 
-    fn pop(self: *Self) VirtualMachineError!u64 {
+    fn pushInt(self: *Self, value: u64) VirtualMachineError!void {
+        try self.push(Value{ .Int = value });
+    }
+
+    fn pop(self: *Self) VirtualMachineError!Value {
         return self.data_stack.popOrNull() orelse VirtualMachineError.StackUnderflow;
+    }
+
+    fn popInt(self: *Self) VirtualMachineError!u64 {
+        const value = try self.pop();
+        return switch (value) {
+            .Int => |value| value,
+            else => VirtualMachineError.TypeError,
+        };
     }
 };
 
@@ -85,4 +99,5 @@ pub const VirtualMachineError = error{
     OutOfMemory,
     StackUnderflow,
     DivideByZero,
+    TypeError,
 };
