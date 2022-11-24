@@ -1,10 +1,10 @@
 const std = @import("std");
 
 const assam = @import("assam.zig");
-const VirtualMachine = vm_mod.VirtualMachine;
-const VirtualMachineError = vm_mod.VirtualMachineError;
-const Instruction = instruction_mod.Instruction;
-const InstructionTag = instruction_mod.InstructionTag;
+const VirtualMachine = assam.VirtualMachine;
+const VirtualMachineError = assam.VirtualMachineError;
+const Instruction = assam.Instruction;
+const InstructionTag = assam.InstructionTag;
 
 pub fn main() !void {
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
