@@ -37,11 +37,17 @@ pub const VirtualMachine = struct {
             .Multiply => try self.push(try self.pop() *% try self.pop()),
             .Divide => {
                 const b = try self.pop();
+                if (b == 0) {
+                    return VirtualMachineError.DivideByZero;
+                }
                 const a = try self.pop();
                 try self.push(a / b);
             },
             .Modulo => {
                 const b = try self.pop();
+                if (b == 0) {
+                    return VirtualMachineError.DivideByZero;
+                }
                 const a = try self.pop();
                 try self.push(a % b);
             },
@@ -62,4 +68,5 @@ pub const VirtualMachine = struct {
 pub const VirtualMachineError = error{
     OutOfMemory,
     StackUnderflow,
+    DivideByZero,
 };
