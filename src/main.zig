@@ -1,5 +1,13 @@
 const std = @import("std");
 
+const vm_mod = @import("vm.zig");
+const VirtualMachine = vm_mod.VirtualMachine;
+const VirtualMachineError = vm_mod.VirtualMachineError;
+
+const instruction_mod = @import("instruction.zig");
+const Instruction = instruction_mod.Instruction;
+const InstructionTag = instruction_mod.InstructionTag;
+
 pub fn main() !void {
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
     std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
@@ -16,9 +24,13 @@ pub fn main() !void {
     try bw.flush(); // don't forget to flush!
 }
 
-test "simple test" {
-    var list = std.ArrayList(i32).init(std.testing.allocator);
-    defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
-    try list.append(42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
+test "vm instruction execution" {
+    var vm = VirtualMachine.init(std.testing.allocator);
+    defer vm.deinit();
+
+    try vm.executeInstruction(Instruction{ .Push = 5 });
+    try vm.executeInstruction(Instruction{ .Push = 10 });
+    try vm.executeInstruction(Instruction.Drop);
+    try std.testing.expect(vm.data_stack.pop() == 5);
+    try std.testing.expectError(VirtualMachineError.StackUnderflow, vm.executeInstruction(Instruction.Drop));
 }
