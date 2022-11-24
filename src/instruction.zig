@@ -9,6 +9,14 @@ pub const Instruction = union(InstructionTag) {
     Multiply,
     Divide,
     Modulo,
+
+    // Bitwise operations
+    BitwiseAnd,
+    BitwiseOr,
+    BitwiseXor,
+    BitwiseNot,
+    ShiftLeft,
+    ShiftRight,
 };
 
 pub const InstructionTag = enum {
@@ -22,4 +30,12 @@ pub const InstructionTag = enum {
     Multiply,
     Divide,
     Modulo,
+
+    // Bitwise operations
+    BitwiseAnd,
+    BitwiseOr,
+    BitwiseXor,
+    BitwiseNot,
+    ShiftLeft,
+    ShiftRight,
 };

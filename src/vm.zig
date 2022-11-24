@@ -51,6 +51,22 @@ pub const VirtualMachine = struct {
                 const a = try self.pop();
                 try self.push(a % b);
             },
+
+            // Bitwise operations
+            .BitwiseAnd => try self.push(try self.pop() & try self.pop()),
+            .BitwiseOr => try self.push(try self.pop() | try self.pop()),
+            .BitwiseXor => try self.push(try self.pop() ^ try self.pop()),
+            .BitwiseNot => try self.push(~try self.pop()),
+            .ShiftLeft => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(a << @intCast(u6, b));
+            },
+            .ShiftRight => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(a << @intCast(u6, b));
+            },
         }
     }
 
