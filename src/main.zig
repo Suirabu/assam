@@ -28,9 +28,28 @@ test "vm instruction execution" {
     var vm = VirtualMachine.init(std.testing.allocator);
     defer vm.deinit();
 
-    try vm.executeInstruction(Instruction{ .Push = 5 });
     try vm.executeInstruction(Instruction{ .Push = 10 });
-    try vm.executeInstruction(Instruction.Drop);
-    try std.testing.expect(vm.data_stack.pop() == 5);
-    try std.testing.expectError(VirtualMachineError.StackUnderflow, vm.executeInstruction(Instruction.Drop));
+    try vm.executeInstruction(Instruction{ .Push = 3 });
+    try vm.executeInstruction(Instruction.Add);
+    try std.testing.expect(vm.data_stack.pop() == 13);
+
+    try vm.executeInstruction(Instruction{ .Push = 10 });
+    try vm.executeInstruction(Instruction{ .Push = 3 });
+    try vm.executeInstruction(Instruction.Subtract);
+    try std.testing.expect(vm.data_stack.pop() == 7);
+
+    try vm.executeInstruction(Instruction{ .Push = 10 });
+    try vm.executeInstruction(Instruction{ .Push = 3 });
+    try vm.executeInstruction(Instruction.Multiply);
+    try std.testing.expect(vm.data_stack.pop() == 30);
+
+    try vm.executeInstruction(Instruction{ .Push = 10 });
+    try vm.executeInstruction(Instruction{ .Push = 3 });
+    try vm.executeInstruction(Instruction.Divide);
+    try std.testing.expect(vm.data_stack.pop() == 3);
+
+    try vm.executeInstruction(Instruction{ .Push = 10 });
+    try vm.executeInstruction(Instruction{ .Push = 3 });
+    try vm.executeInstruction(Instruction.Modulo);
+    try std.testing.expect(vm.data_stack.pop() == 1);
 }
