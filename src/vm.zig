@@ -1,7 +1,8 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 
-const Instruction = @import("instruction.zig").Instruction;
+const assam = @import("assam.zig");
+const Instruction = assam.Instruction;
 
 pub const VirtualMachine = struct {
     const Self = @This();

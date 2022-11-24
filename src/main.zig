@@ -1,10 +1,8 @@
 const std = @import("std");
 
-const vm_mod = @import("vm.zig");
+const assam = @import("assam.zig");
 const VirtualMachine = vm_mod.VirtualMachine;
 const VirtualMachineError = vm_mod.VirtualMachineError;
-
-const instruction_mod = @import("instruction.zig");
 const Instruction = instruction_mod.Instruction;
 const InstructionTag = instruction_mod.InstructionTag;
 
