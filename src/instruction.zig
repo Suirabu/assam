@@ -19,6 +19,17 @@ pub const Instruction = union(InstructionTag) {
     BitwiseNot,
     ShiftLeft,
     ShiftRight,
+
+    // Logical operations
+    Equal,
+    NotEqual,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+    LogicalAnd,
+    LogicalOr,
+    LogicalNot,
 };
 
 pub const InstructionTag = enum {
@@ -40,4 +51,15 @@ pub const InstructionTag = enum {
     BitwiseNot,
     ShiftLeft,
     ShiftRight,
+
+    // Logical operations
+    Equal,
+    NotEqual,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+    LogicalAnd,
+    LogicalOr,
+    LogicalNot,
 };

@@ -69,6 +69,51 @@ pub const VirtualMachine = struct {
                 const a = try self.popInt();
                 try self.pushInt(a << @intCast(u6, b));
             },
+
+            // Logical operations
+            .LogicalAnd => {
+                const b = try self.popBool();
+                const a = try self.popBool();
+                try self.pushBool(b and a);
+            },
+            .LogicalOr => {
+                const b = try self.popBool();
+                const a = try self.popBool();
+                try self.pushBool(b or a);
+            },
+            .LogicalNot => try self.pushBool(!try self.popBool()),
+            .Equal => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try assertEqualTypes(a, b);
+                try self.pushBool(a.eql(b));
+            },
+            .NotEqual => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try assertEqualTypes(a, b);
+                try self.pushBool(!a.eql(b));
+            },
+            .Less => {
+                const b = try self.popInt();
+                const a = try self.popInt();
+                try self.pushBool(a < b);
+            },
+            .LessEqual => {
+                const b = try self.popInt();
+                const a = try self.popInt();
+                try self.pushBool(a <= b);
+            },
+            .Greater => {
+                const b = try self.popInt();
+                const a = try self.popInt();
+                try self.pushBool(a > b);
+            },
+            .GreaterEqual => {
+                const b = try self.popInt();
+                const a = try self.popInt();
+                try self.pushBool(a >= b);
+            },
         }
     }
 
@@ -82,6 +127,10 @@ pub const VirtualMachine = struct {
         try self.push(Value{ .Int = value });
     }
 
+    fn pushBool(self: *Self, value: bool) VirtualMachineError!void {
+        try self.push(Value{ .Bool = value });
+    }
+
     fn pop(self: *Self) VirtualMachineError!Value {
         return self.data_stack.popOrNull() orelse VirtualMachineError.StackUnderflow;
     }
@@ -92,6 +141,22 @@ pub const VirtualMachine = struct {
             .Int => |value| value,
             else => VirtualMachineError.TypeError,
         };
+    }
+
+    fn popBool(self: *Self) VirtualMachineError!bool {
+        const value = try self.pop();
+        return switch (value) {
+            .Bool => |value| value,
+            else => VirtualMachineError.TypeError,
+        };
+    }
+
+    fn assertEqualTypes(a: Value, b: Value) VirtualMachineError!void {
+        const a_tag: ValueTag = a;
+        const b_tag: ValueTag = b;
+        if (a_tag != b_tag) {
+            return VirtualMachineError.TypeError;
+        }
     }
 };
 
