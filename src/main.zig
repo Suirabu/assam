@@ -1,53 +1,62 @@
 const std = @import("std");
+const fs = std.fs;
+const process = std.process;
+const assert = std.debug.assert;
 
 const assam = @import("assam.zig");
+const BytecodeModule = assam.BytecodeModule;
 const VirtualMachine = assam.VirtualMachine;
-const VirtualMachineError = assam.VirtualMachineError;
-const Instruction = assam.Instruction;
-const InstructionTag = assam.InstructionTag;
 
 pub fn main() !void {
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer {
+        const leaked = gpa.deinit();
+        if (leaked) {
+            _ = gpa.detectLeaks();
+        }
+    }
+    const allocator = gpa.allocator();
 
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    // Get module path
+    var args_iter = try process.argsWithAllocator(allocator);
+    assert(args_iter.skip()); // Skip executable path
+    const module_path = args_iter.next() orelse {
+        const stderr = std.io.getStdErr();
+        try displayUsage(stderr.writer());
+        fatal("Module path not provided", .{});
+    };
 
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    // Attempt to read module contents
+    const module_file = try fs.cwd().openFile(module_path, .{});
+    defer module_file.close();
 
-    try bw.flush(); // don't forget to flush!
-}
+    const module_contents = try module_file.readToEndAlloc(allocator, std.math.maxInt(u32));
+    defer allocator.free(module_contents);
 
-test "vm instruction execution" {
-    var vm = VirtualMachine.init(std.testing.allocator);
+    // Decode bytecode module
+    const module = try BytecodeModule.fromBytes(module_contents, allocator);
+    defer module.deinit(allocator);
+
+    var vm = VirtualMachine.init(allocator);
     defer vm.deinit();
 
-    try vm.executeInstruction(Instruction{ .Push = 10 });
-    try vm.executeInstruction(Instruction{ .Push = 3 });
-    try vm.executeInstruction(Instruction.Add);
-    try std.testing.expect(vm.data_stack.pop() == 13);
+    for (module.instructions) |instruction| {
+        try vm.executeInstruction(instruction);
+    }
+}
 
-    try vm.executeInstruction(Instruction{ .Push = 10 });
-    try vm.executeInstruction(Instruction{ .Push = 3 });
-    try vm.executeInstruction(Instruction.Subtract);
-    try std.testing.expect(vm.data_stack.pop() == 7);
+fn displayUsage(writer: anytype) !void {
+    try writer.print(
+        \\avm - Assam Virtual Machine
+        \\
+        \\Usage:
+        \\    avm <module>
+        \\
+        \\
+    , .{});
+}
 
-    try vm.executeInstruction(Instruction{ .Push = 10 });
-    try vm.executeInstruction(Instruction{ .Push = 3 });
-    try vm.executeInstruction(Instruction.Multiply);
-    try std.testing.expect(vm.data_stack.pop() == 30);
-
-    try vm.executeInstruction(Instruction{ .Push = 10 });
-    try vm.executeInstruction(Instruction{ .Push = 3 });
-    try vm.executeInstruction(Instruction.Divide);
-    try std.testing.expect(vm.data_stack.pop() == 3);
-
-    try vm.executeInstruction(Instruction{ .Push = 10 });
-    try vm.executeInstruction(Instruction{ .Push = 3 });
-    try vm.executeInstruction(Instruction.Modulo);
-    try std.testing.expect(vm.data_stack.pop() == 1);
+fn fatal(comptime format: []const u8, args: anytype) noreturn {
+    std.log.err(format, args);
+    process.exit(1);
 }

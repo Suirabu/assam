@@ -11,7 +11,7 @@ pub fn build(b: *std.build.Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
-    const exe = b.addExecutable("assam", "src/main.zig");
+    const exe = b.addExecutable("avm", "src/main.zig");
     exe.setTarget(target);
     exe.setBuildMode(mode);
     exe.install();
@@ -22,7 +22,7 @@ pub fn build(b: *std.build.Builder) void {
         run_cmd.addArgs(args);
     }
 
-    const run_step = b.step("run", "Run the app");
+    const run_step = b.step("run", "Run the Assam virtual machine");
     run_step.dependOn(&run_cmd.step);
 
     const exe_tests = b.addTest("src/main.zig");
