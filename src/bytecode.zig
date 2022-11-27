@@ -98,4 +98,12 @@ pub const BytecodeModule = struct {
 
         return byte_list.items;
     }
+
+    // Not sure if it makes sense to take an allocator as an argument here, but it seems to make more sense than
+    // storing an allocator as an struct member to me. The downside of taking an allocator as an argument is that the
+    // caller could potentially pass an allocator different from the one which was used to allocate the members we
+    // argument freeing here
+    pub fn deinit(self: Self, allocator: Allocator) void {
+        allocator.free(self.instructions);
+    }
 };
