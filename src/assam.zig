@@ -10,4 +10,7 @@ const value = @import("value.zig");
 pub const Value = value.Value;
 pub const ValueTag = value.ValueTag;
 
+const bytecode = @import("bytecode.zig");
+pub const BytecodeModule = bytecode.BytecodeModule;
+
 pub const AssamError = VirtualMachineError;

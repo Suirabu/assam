@@ -19,7 +19,7 @@ pub const Value = union(ValueTag) {
     }
 };
 
-pub const ValueTag = enum {
+pub const ValueTag = enum(u8) {
     Int,
     Bool,
 };
