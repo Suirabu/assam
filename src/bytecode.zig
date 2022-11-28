@@ -5,6 +5,8 @@ const Allocator = mem.Allocator;
 const assam = @import("assam.zig");
 const Instruction = assam.Instruction;
 const InstructionTag = assam.InstructionTag;
+const instructionsToBytes = assam.instructionsToBytes;
+const instructionsFromBytes = assam.instructionsFromBytes;
 const Value = assam.Value;
 const ValueTag = assam.ValueTag;
 
@@ -47,55 +49,6 @@ pub const BytecodeModule = struct {
         try writer.writeByte(self.minor_version);
         try writer.writeByte(self.patch_version);
         _ = try writer.write(try instructionsToBytes(self.instructions, allocator));
-
-        return byte_list.items;
-    }
-
-    fn instructionsFromBytes(bytes: []const u8, allocator: Allocator) ![]Instruction {
-        var fbs = std.io.fixedBufferStream(bytes);
-        var reader = fbs.reader();
-
-        var instructions = std.ArrayList(Instruction).init(allocator);
-
-        while (true) {
-            const tag = @intToEnum(InstructionTag, reader.readByte() catch break);
-            const instruction = switch (tag) {
-                .Push => blk: {
-                    const value_tag = @intToEnum(ValueTag, try reader.readByte());
-                    const value = switch (value_tag) {
-                        .Int => Value{ .Int = try reader.readIntBig(u64) },
-                        .Bool => Value{ .Bool = try reader.readByte() != 0 },
-                    };
-                    break :blk Instruction{ .Push = value };
-                },
-                else => tag.toInstruction(),
-            };
-            try instructions.append(instruction);
-        }
-
-        return instructions.items;
-    }
-
-    fn instructionsToBytes(instructions: []Instruction, allocator: Allocator) ![]u8 {
-        var byte_list = std.ArrayList(u8).init(allocator);
-        var writer = byte_list.writer();
-
-        for (instructions) |instruction| {
-            const tag: InstructionTag = instruction;
-            try writer.writeByte(@enumToInt(tag));
-
-            switch (instruction) {
-                .Push => |value| {
-                    const value_tag: ValueTag = value;
-                    try writer.writeByte(@enumToInt(value_tag));
-                    switch (value) {
-                        .Int => |constant| try writer.writeIntBig(u64, constant),
-                        .Bool => |constant| try writer.writeByte(@boolToInt(constant)),
-                    }
-                },
-                else => {},
-            }
-        }
 
         return byte_list.items;
     }
