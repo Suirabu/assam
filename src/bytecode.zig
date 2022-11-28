@@ -32,6 +32,7 @@ pub const BytecodeModule = struct {
         module.patch_version = try reader.readByte();
 
         const code_section = try reader.readAllAlloc(allocator, std.math.maxInt(u32));
+        defer allocator.free(code_section);
         module.instructions = try instructionsFromBytes(code_section, allocator);
 
         return module;
