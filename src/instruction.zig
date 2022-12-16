@@ -6,6 +6,8 @@ const assam = @import("assam.zig");
 const Value = assam.Value;
 const ValueTag = assam.ValueTag;
 
+pub const Block = []Instruction;
+
 pub const Instruction = union(InstructionTag) {
     // Stack operations
     Push: Value,

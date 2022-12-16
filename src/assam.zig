@@ -5,6 +5,7 @@ const VirtualMachineError = vm.VirtualMachineError;
 const instruction = @import("instruction.zig");
 pub const Instruction = instruction.Instruction;
 pub const InstructionTag = instruction.InstructionTag;
+pub const Block = instruction.Block;
 pub const instructionsToBytes = instruction.instructionsToBytes;
 pub const instructionsFromBytes = instruction.instructionsFromBytes;
 

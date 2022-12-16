@@ -5,6 +5,7 @@ const Allocator = mem.Allocator;
 const assam = @import("assam.zig");
 const Instruction = assam.Instruction;
 const InstructionTag = assam.InstructionTag;
+const Block = assam.Block;
 const instructionsToBytes = assam.instructionsToBytes;
 const instructionsFromBytes = assam.instructionsFromBytes;
 const Value = assam.Value;
@@ -16,7 +17,8 @@ pub const BytecodeModule = struct {
     major_version: u8,
     minor_version: u8,
     patch_version: u8,
-    instructions: []Instruction,
+    start_block_index: u32,
+    blocks: []Block,
 
     pub fn fromBytes(bytes: []const u8, allocator: Allocator) !Self {
         var fbs = std.io.fixedBufferStream(bytes);
@@ -33,24 +35,48 @@ pub const BytecodeModule = struct {
         module.minor_version = try reader.readByte();
         module.patch_version = try reader.readByte();
 
-        const code_section = try reader.readAllAlloc(allocator, std.math.maxInt(u32));
-        defer allocator.free(code_section);
-        module.instructions = try instructionsFromBytes(code_section, allocator);
+        // Parse code section
+        module.start_block_index = try reader.readIntBig(u32);
+        var blocks = std.ArrayList(Block).init(allocator);
+        defer blocks.deinit();
+
+        // Collect blocks
+        while (true) {
+            const block_size = reader.readIntBig(u32) catch break;
+
+            var block_bytes = try allocator.alloc(u8, block_size);
+            defer allocator.free(block_bytes);
+
+            _ = try reader.read(block_bytes);
+
+            const block = try instructionsFromBytes(block_bytes, allocator);
+            try blocks.append(block);
+        }
+
+        module.blocks = blocks.toOwnedSlice();
 
         return module;
     }
 
     pub fn toBytes(self: Self, allocator: Allocator) ![]u8 {
         var byte_list = std.ArrayList(u8).init(allocator);
+        defer byte_list.deinit();
         var writer = byte_list.writer();
 
         _ = try writer.write("ABM");
         try writer.writeByte(self.major_version);
         try writer.writeByte(self.minor_version);
         try writer.writeByte(self.patch_version);
-        _ = try writer.write(try instructionsToBytes(self.instructions, allocator));
+        try writer.writeIntBig(u32, self.start_block_index);
 
-        return byte_list.items;
+        for (self.blocks) |block| {
+            const bytes = try instructionsToBytes(block, allocator);
+            defer allocator.free(bytes);
+            try writer.writeIntBig(u32, @intCast(u32, bytes.len));
+            _ = try writer.write(bytes);
+        }
+
+        return byte_list.toOwnedSlice();
     }
 
     // Not sure if it makes sense to take an allocator as an argument here, but it seems to make more sense than
@@ -58,6 +84,9 @@ pub const BytecodeModule = struct {
     // caller could potentially pass an allocator different from the one which was used to allocate the members we
     // argument freeing here
     pub fn deinit(self: Self, allocator: Allocator) void {
-        allocator.free(self.instructions);
+        for (self.blocks) |block| {
+            allocator.free(block);
+        }
+        allocator.free(self.blocks);
     }
 };

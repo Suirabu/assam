@@ -40,7 +40,7 @@ pub fn main() !void {
     var vm = VirtualMachine.init(allocator);
     defer vm.deinit();
 
-    for (module.instructions) |instruction| {
+    for (module.blocks[module.start_block_index]) |instruction| {
         try vm.executeInstruction(instruction);
     }
 }
