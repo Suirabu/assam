@@ -38,6 +38,9 @@ pub const Instruction = union(InstructionTag) {
     LogicalAnd,
     LogicalOr,
     LogicalNot,
+
+    Call,
+    ConditionalCall,
 };
 
 pub const InstructionTag = enum(u8) {
@@ -73,6 +76,9 @@ pub const InstructionTag = enum(u8) {
     LogicalOr,
     LogicalNot,
 
+    Call,
+    ConditionalCall,
+
     pub fn toInstruction(self: Self) Instruction {
         return switch (self) {
             .Push => Instruction{ .Push = undefined },
@@ -97,6 +103,8 @@ pub const InstructionTag = enum(u8) {
             .LogicalAnd => Instruction.LogicalAnd,
             .LogicalOr => Instruction.LogicalOr,
             .LogicalNot => Instruction.LogicalNot,
+            .Call => Instruction.Call,
+            .ConditionalCall => Instruction.ConditionalCall,
         };
     }
 };

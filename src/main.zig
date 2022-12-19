@@ -38,6 +38,7 @@ pub fn main() !void {
     defer module.deinit(allocator);
 
     var vm = VirtualMachine.init(allocator);
+    vm.loadBytecodeModule(module);
     defer vm.deinit();
 
     for (module.blocks[module.start_block_index]) |instruction| {

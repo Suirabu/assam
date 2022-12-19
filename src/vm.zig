@@ -5,15 +5,18 @@ const assam = @import("assam.zig");
 const Instruction = assam.Instruction;
 const Value = assam.Value;
 const ValueTag = assam.ValueTag;
+const BytecodeModule = assam.BytecodeModule;
 
 pub const VirtualMachine = struct {
     const Self = @This();
 
+    module: ?BytecodeModule,
     data_stack: std.ArrayList(Value),
     allocator: Allocator,
 
     pub fn init(allocator: Allocator) Self {
         return Self{
+            .module = null,
             .data_stack = std.ArrayList(Value).init(allocator),
             .allocator = allocator,
         };
@@ -23,7 +26,15 @@ pub const VirtualMachine = struct {
         self.data_stack.deinit();
     }
 
+    pub fn loadBytecodeModule(self: *Self, module: BytecodeModule) void {
+        self.module = module;
+    }
+
     pub fn executeInstruction(self: *Self, instruction: Instruction) VirtualMachineError!void {
+        if (self.module == null) {
+            return VirtualMachineError.MissingModule;
+        }
+
         switch (instruction) {
             // Stack operations
             .Push => |value| try self.push(value),
@@ -114,6 +125,31 @@ pub const VirtualMachine = struct {
                 const a = try self.popInt();
                 try self.pushBool(a >= b);
             },
+            .Call => {
+                const block_index = try self.popInt();
+                if (block_index >= self.module.?.blocks.len) {
+                    return VirtualMachineError.InvalidBlockIndex;
+                }
+
+                for (self.module.?.blocks[block_index]) |i| {
+                    try self.executeInstruction(i);
+                }
+            },
+            .ConditionalCall => {
+                const condition = try self.popBool();
+                const block_index = try self.popInt();
+                if (block_index >= self.module.?.blocks.len) {
+                    return VirtualMachineError.InvalidBlockIndex;
+                }
+
+                if (!condition) {
+                    return;
+                }
+
+                for (self.module.?.blocks[block_index]) |i| {
+                    try self.executeInstruction(i);
+                }
+            },
         }
     }
 
@@ -165,4 +201,6 @@ pub const VirtualMachineError = error{
     StackUnderflow,
     DivideByZero,
     TypeError,
+    MissingModule,
+    InvalidBlockIndex,
 };
