@@ -174,7 +174,7 @@ pub const VirtualMachine = struct {
     fn popInt(self: *Self) VirtualMachineError!u64 {
         const value = try self.pop();
         return switch (value) {
-            .Int => |value| value,
+            .Int => |inner_value| inner_value,
             else => VirtualMachineError.TypeError,
         };
     }
@@ -182,7 +182,7 @@ pub const VirtualMachine = struct {
     fn popBool(self: *Self) VirtualMachineError!bool {
         const value = try self.pop();
         return switch (value) {
-            .Bool => |value| value,
+            .Bool => |inner_value| inner_value,
             else => VirtualMachineError.TypeError,
         };
     }
