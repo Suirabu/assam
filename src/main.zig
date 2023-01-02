@@ -61,3 +61,33 @@ fn fatal(comptime format: []const u8, args: anytype) noreturn {
     std.log.err(format, args);
     process.exit(1);
 }
+
+test {
+    var builder = assam.ModuleBuilder.init(std.testing.allocator);
+    defer builder.deinit();
+
+    var add_block = assam.BlockBuilder.init(&builder);
+    var add_block_instructions = [_]assam.Instruction{
+        assam.Instruction{ .Push = assam.Value{ .Int = 10 } },
+        assam.Instruction{ .Push = assam.Value{ .Int = 5 } },
+        assam.Instruction.Add,
+    };
+    try add_block.appendInstructions(add_block_instructions[0..]);
+    try builder.addBlock(add_block);
+
+    var start_block = assam.BlockBuilder.init(&builder);
+    var start_instructions = [_]assam.Instruction{
+        assam.Instruction{ .Push = assam.Value{ .Int = add_block.index } },
+        assam.Instruction.Call,
+        assam.Instruction.Drop,
+    };
+    try start_block.appendInstructions(start_instructions[0..]);
+    try builder.addBlock(start_block);
+    builder.setStartBlock(start_block);
+
+    var module = try builder.toBytecodeModule();
+    defer module.deinit(std.testing.allocator);
+    const bytes = try module.toBytes(std.testing.allocator);
+    defer std.testing.allocator.free(bytes);
+    std.debug.print("\nModule bytes:\n\t{any}\n", .{bytes});
+}
