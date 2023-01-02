@@ -53,7 +53,7 @@ pub const BytecodeModule = struct {
             try blocks.append(block);
         }
 
-        module.blocks = blocks.toOwnedSlice();
+        module.blocks = try blocks.toOwnedSlice();
 
         return module;
     }
