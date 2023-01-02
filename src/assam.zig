@@ -16,4 +16,8 @@ pub const ValueTag = value.ValueTag;
 const bytecode = @import("bytecode.zig");
 pub const BytecodeModule = bytecode.BytecodeModule;
 
+const builder = @import("builder.zig");
+pub const ModuleBuilder = builder.ModuleBuilder;
+pub const BlockBuilder = builder.BlockBuilder;
+
 pub const AssamError = VirtualMachineError;
