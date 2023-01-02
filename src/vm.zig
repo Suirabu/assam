@@ -26,6 +26,12 @@ pub const VirtualMachine = struct {
         self.data_stack.deinit();
     }
 
+    pub fn run(self: *Self) VirtualMachineError!void {
+        for (self.module.blocks[self.module.start_block_index]) |instruction| {
+            try self.executeInstruction(instruction);
+        }
+    }
+
     pub fn executeInstruction(self: *Self, instruction: Instruction) VirtualMachineError!void {
         switch (instruction) {
             // Stack operations
