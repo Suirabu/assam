@@ -37,8 +37,7 @@ pub fn main() !void {
     const module = try BytecodeModule.fromBytes(module_contents, allocator);
     defer module.deinit(allocator);
 
-    var vm = VirtualMachine.init(allocator);
-    vm.loadBytecodeModule(module);
+    var vm = VirtualMachine.init(module, allocator);
     defer vm.deinit();
 
     for (module.blocks[module.start_block_index]) |instruction| {
