@@ -121,6 +121,7 @@ pub fn instructionsFromBytes(bytes: []const u8, allocator: Allocator) ![]Instruc
             .Push => blk: {
                 const value_tag = @intToEnum(ValueTag, try reader.readByte());
                 const value = switch (value_tag) {
+                    .BlockIndex => Value{ .BlockIndex = try reader.readIntBig(u32) },
                     .Int => Value{ .Int = try reader.readIntBig(u64) },
                     .Bool => Value{ .Bool = try reader.readByte() != 0 },
                 };
@@ -147,6 +148,7 @@ pub fn instructionsToBytes(instructions: []Instruction, allocator: Allocator) ![
                 const value_tag: ValueTag = value;
                 try writer.writeByte(@enumToInt(value_tag));
                 switch (value) {
+                    .BlockIndex => |constant| try writer.writeIntBig(u32, constant),
                     .Int => |constant| try writer.writeIntBig(u64, constant),
                     .Bool => |constant| try writer.writeByte(@boolToInt(constant)),
                 }

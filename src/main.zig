@@ -74,7 +74,7 @@ test {
 
     var start_block = assam.BlockBuilder.init(&builder);
     var start_instructions = [_]assam.Instruction{
-        assam.Instruction{ .Push = assam.Value{ .Int = add_block.index } },
+        assam.Instruction{ .Push = assam.Value{ .BlockIndex = add_block.index } },
         assam.Instruction.Call,
         assam.Instruction.Drop,
     };

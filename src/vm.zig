@@ -124,7 +124,7 @@ pub const VirtualMachine = struct {
                 try self.pushBool(a >= b);
             },
             .Call => {
-                const block_index = try self.popInt();
+                const block_index = try self.popBlockIndex();
                 if (block_index >= self.module.blocks.len) {
                     return VirtualMachineError.InvalidBlockIndex;
                 }
@@ -135,7 +135,7 @@ pub const VirtualMachine = struct {
             },
             .ConditionalCall => {
                 const condition = try self.popBool();
-                const block_index = try self.popInt();
+                const block_index = try self.popBlockIndex();
                 if (block_index >= self.module.blocks.len) {
                     return VirtualMachineError.InvalidBlockIndex;
                 }
@@ -157,6 +157,10 @@ pub const VirtualMachine = struct {
         };
     }
 
+    fn pushBlockIndex(self: *Self, block_index: u32) VirtualMachineError!void {
+        try self.push(Value{ .BlockIndex = block_index });
+    }
+
     fn pushInt(self: *Self, value: u64) VirtualMachineError!void {
         try self.push(Value{ .Int = value });
     }
@@ -167,6 +171,14 @@ pub const VirtualMachine = struct {
 
     fn pop(self: *Self) VirtualMachineError!Value {
         return self.data_stack.popOrNull() orelse VirtualMachineError.StackUnderflow;
+    }
+
+    fn popBlockIndex(self: *Self) VirtualMachineError!u32 {
+        const value = try self.pop();
+        return switch (value) {
+            .BlockIndex => |block_index| block_index,
+            else => VirtualMachineError.TypeError,
+        };
     }
 
     fn popInt(self: *Self) VirtualMachineError!u64 {

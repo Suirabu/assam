@@ -2,6 +2,7 @@ const std = @import("std");
 const fmt = std.fmt;
 
 pub const Value = union(ValueTag) {
+    BlockIndex: u32,
     Int: u64,
     Bool: bool,
 
@@ -13,6 +14,7 @@ pub const Value = union(ValueTag) {
         }
 
         return switch (a) {
+            .BlockIndex => a.BlockIndex == b.BlockIndex,
             .Int => a.Int == b.Int,
             .Bool => a.Bool == b.Bool,
         };
@@ -20,6 +22,7 @@ pub const Value = union(ValueTag) {
 };
 
 pub const ValueTag = enum(u8) {
+    BlockIndex,
     Int,
     Bool,
 };
