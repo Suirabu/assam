@@ -46,6 +46,8 @@ pub const Instruction = union(InstructionTag) {
     LoadBool,
     StoreInt,
     StoreBool,
+
+    Print,
 };
 
 pub const InstructionTag = enum(u8) {
@@ -89,6 +91,8 @@ pub const InstructionTag = enum(u8) {
     StoreInt,
     StoreBool,
 
+    Print,
+
     pub fn toInstruction(self: Self) Instruction {
         return switch (self) {
             .Push => Instruction{ .Push = undefined },
@@ -119,6 +123,7 @@ pub const InstructionTag = enum(u8) {
             .LoadBool => Instruction.LoadBool,
             .StoreInt => Instruction.StoreInt,
             .StoreBool => Instruction.StoreBool,
+            .Print => Instruction.Print,
         };
     }
 };

@@ -1,5 +1,4 @@
 const std = @import("std");
-const fmt = std.fmt;
 
 pub const Value = union(ValueTag) {
     BlockIndex: u32,
@@ -18,6 +17,17 @@ pub const Value = union(ValueTag) {
             .Int => a.Int == b.Int,
             .Bool => a.Bool == b.Bool,
         };
+    }
+
+    pub fn format(value: Value, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        _ = fmt;
+        _ = options;
+
+        switch (value) {
+            Value.BlockIndex => |inner_value| try writer.print("{X}\n", .{inner_value}),
+            Value.Int => |inner_value| try writer.print("{d}\n", .{inner_value}),
+            Value.Bool => |inner_value| try writer.print("{s}\n", .{if (inner_value) "true" else "false"}),
+        }
     }
 };
 

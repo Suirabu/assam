@@ -179,6 +179,10 @@ pub const VirtualMachine = struct {
                 try self.assertBytesFitInMemory(@sizeOf(bool), offset);
                 self.global_memory[offset] = @boolToInt(value);
             },
+            .Print => {
+                const value = try self.pop();
+                std.debug.print("{}\n", .{value});
+            },
         }
     }
 

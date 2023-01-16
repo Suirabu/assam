@@ -82,7 +82,7 @@ test {
         assam.Instruction.Call,
         assam.Instruction{ .Push = assam.Value{ .Int = result_addr } },
         assam.Instruction.LoadInt,
-        assam.Instruction.Drop,
+        assam.Instruction.Print,
     };
     try start_block.appendInstructions(start_instructions[0..]);
     try builder.addBlock(start_block);
@@ -92,5 +92,9 @@ test {
     defer module.deinit(std.testing.allocator);
     const bytes = try module.toBytes(std.testing.allocator);
     defer std.testing.allocator.free(bytes);
-    std.debug.print("\nModule bytes:\n\t{any}\n", .{bytes});
+
+    var vm = try assam.VirtualMachine.init(module, std.testing.allocator);
+    defer vm.deinit();
+
+    try vm.run();
 }
