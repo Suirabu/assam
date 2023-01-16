@@ -17,6 +17,7 @@ pub const BytecodeModule = struct {
     major_version: u8,
     minor_version: u8,
     patch_version: u8,
+    global_memory_size: u32,
     start_block_index: u32,
     blocks: []Block,
 
@@ -34,6 +35,7 @@ pub const BytecodeModule = struct {
         module.major_version = try reader.readByte();
         module.minor_version = try reader.readByte();
         module.patch_version = try reader.readByte();
+        module.global_memory_size = try reader.readIntBig(u32);
 
         // Parse code section
         module.start_block_index = try reader.readIntBig(u32);
@@ -67,6 +69,7 @@ pub const BytecodeModule = struct {
         try writer.writeByte(self.major_version);
         try writer.writeByte(self.minor_version);
         try writer.writeByte(self.patch_version);
+        try writer.writeIntBig(u32, self.global_memory_size);
         try writer.writeIntBig(u32, self.start_block_index);
 
         for (self.blocks) |block| {

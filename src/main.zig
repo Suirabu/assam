@@ -37,7 +37,7 @@ pub fn main() !void {
     const module = try BytecodeModule.fromBytes(module_contents, allocator);
     defer module.deinit(allocator);
 
-    var vm = VirtualMachine.init(module, allocator);
+    var vm = try VirtualMachine.init(module, allocator);
     defer vm.deinit();
 
     try vm.run();
@@ -63,11 +63,15 @@ test {
     var builder = assam.ModuleBuilder.init(std.testing.allocator);
     defer builder.deinit();
 
+    var result_addr = builder.allocateGlobalInt();
+
     var add_block = assam.BlockBuilder.init(&builder);
     var add_block_instructions = [_]assam.Instruction{
+        assam.Instruction{ .Push = assam.Value{ .Int = result_addr } },
         assam.Instruction{ .Push = assam.Value{ .Int = 10 } },
         assam.Instruction{ .Push = assam.Value{ .Int = 5 } },
         assam.Instruction.Add,
+        assam.Instruction.StoreInt,
     };
     try add_block.appendInstructions(add_block_instructions[0..]);
     try builder.addBlock(add_block);
@@ -76,6 +80,8 @@ test {
     var start_instructions = [_]assam.Instruction{
         assam.Instruction{ .Push = assam.Value{ .BlockIndex = add_block.index } },
         assam.Instruction.Call,
+        assam.Instruction{ .Push = assam.Value{ .Int = result_addr } },
+        assam.Instruction.LoadInt,
         assam.Instruction.Drop,
     };
     try start_block.appendInstructions(start_instructions[0..]);

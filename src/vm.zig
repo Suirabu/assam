@@ -12,18 +12,25 @@ pub const VirtualMachine = struct {
 
     module: BytecodeModule,
     data_stack: std.ArrayList(Value),
+    global_memory: []u8,
     allocator: Allocator,
 
-    pub fn init(module: BytecodeModule, allocator: Allocator) Self {
+    pub fn init(module: BytecodeModule, allocator: Allocator) VirtualMachineError!Self {
+        const global_memory = allocator.alloc(u8, module.global_memory_size) catch {
+            return VirtualMachineError.OutOfMemory;
+        };
+
         return Self{
             .module = module,
             .data_stack = std.ArrayList(Value).init(allocator),
+            .global_memory = global_memory,
             .allocator = allocator,
         };
     }
 
     pub fn deinit(self: *Self) void {
         self.data_stack.deinit();
+        self.allocator.free(self.global_memory);
     }
 
     pub fn run(self: *Self) VirtualMachineError!void {
@@ -148,6 +155,30 @@ pub const VirtualMachine = struct {
                     try self.executeInstruction(i);
                 }
             },
+            .LoadInt => {
+                const offset = try self.popInt();
+                try self.assertBytesFitInMemory(@sizeOf(u64), offset);
+                const value = std.mem.readIntNative(u64, self.global_memory[offset..][0..@sizeOf(u64)]);
+                try self.pushInt(value);
+            },
+            .LoadBool => {
+                const offset = try self.popInt();
+                try self.assertBytesFitInMemory(@sizeOf(bool), offset);
+                const byte = self.global_memory[offset];
+                try self.pushBool(byte != 0);
+            },
+            .StoreInt => {
+                const value = try self.popInt();
+                const offset = try self.popInt();
+                try self.assertBytesFitInMemory(@sizeOf(u64), offset);
+                std.mem.writeIntNative(u64, self.global_memory[offset..][0..@sizeOf(u64)], value);
+            },
+            .StoreBool => {
+                const value = try self.popBool();
+                const offset = try self.popInt();
+                try self.assertBytesFitInMemory(@sizeOf(bool), offset);
+                self.global_memory[offset] = @boolToInt(value);
+            },
         }
     }
 
@@ -197,6 +228,12 @@ pub const VirtualMachine = struct {
         };
     }
 
+    fn assertBytesFitInMemory(self: *Self, size: u64, offset: u64) VirtualMachineError!void {
+        if (offset + size > self.global_memory.len) {
+            return VirtualMachineError.InvalidGlobalOffset;
+        }
+    }
+
     fn assertEqualTypes(a: Value, b: Value) VirtualMachineError!void {
         const a_tag: ValueTag = a;
         const b_tag: ValueTag = b;
@@ -213,4 +250,5 @@ pub const VirtualMachineError = error{
     TypeError,
     MissingModule,
     InvalidBlockIndex,
+    InvalidGlobalOffset,
 };

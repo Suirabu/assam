@@ -15,6 +15,7 @@ pub const ModuleBuilder = struct {
     const Self = @This();
 
     allocator: Allocator,
+    global_memory_size: u32,
     start_block_index: ?u32,
     next_block_builder_index: u32,
     block_builders: std.ArrayList(BlockBuilder),
@@ -22,6 +23,7 @@ pub const ModuleBuilder = struct {
     pub fn init(allocator: Allocator) Self {
         return Self{
             .allocator = allocator,
+            .global_memory_size = 0,
             .start_block_index = null,
             .next_block_builder_index = 0,
             .block_builders = std.ArrayList(BlockBuilder).init(allocator),
@@ -49,6 +51,7 @@ pub const ModuleBuilder = struct {
             .major_version = major_version,
             .minor_version = minor_version,
             .patch_version = patch_version,
+            .global_memory_size = self.global_memory_size,
             .start_block_index = undefined,
             .blocks = undefined,
         };
@@ -82,6 +85,18 @@ pub const ModuleBuilder = struct {
         }
 
         return module;
+    }
+
+    pub fn allocateGlobalInt(self: *Self) u64 {
+        const offset = self.global_memory_size;
+        self.global_memory_size += @sizeOf(u64);
+        return offset;
+    }
+
+    pub fn allocateGlobalBool(self: *Self) u64 {
+        const offset = self.global_memory_size;
+        self.global_memory_size += @sizeOf(bool);
+        return offset;
     }
 };
 
