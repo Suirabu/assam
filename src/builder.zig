@@ -87,6 +87,12 @@ pub const ModuleBuilder = struct {
         return module;
     }
 
+    pub fn allocateGlobalFloat(self: *Self) u64 {
+        const offset = self.global_memory_size;
+        self.global_memory_size += @sizeOf(f64);
+        return offset;
+    }
+
     pub fn allocateGlobalInt(self: *Self) u64 {
         const offset = self.global_memory_size;
         self.global_memory_size += @sizeOf(u64);

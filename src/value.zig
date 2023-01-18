@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const Value = union(ValueTag) {
     BlockIndex: u32,
+    Float: f64,
     Int: u64,
     Bool: bool,
 
@@ -14,6 +15,7 @@ pub const Value = union(ValueTag) {
 
         return switch (a) {
             .BlockIndex => a.BlockIndex == b.BlockIndex,
+            .Float => a.Float == b.Float,
             .Int => a.Int == b.Int,
             .Bool => a.Bool == b.Bool,
         };
@@ -25,6 +27,7 @@ pub const Value = union(ValueTag) {
 
         switch (value) {
             Value.BlockIndex => |inner_value| try writer.print("{X}\n", .{inner_value}),
+            Value.Float => |inner_value| try writer.print("{d}\n", .{inner_value}),
             Value.Int => |inner_value| try writer.print("{d}\n", .{inner_value}),
             Value.Bool => |inner_value| try writer.print("{s}\n", .{if (inner_value) "true" else "false"}),
         }
@@ -33,6 +36,7 @@ pub const Value = union(ValueTag) {
 
 pub const ValueTag = enum(u8) {
     BlockIndex,
+    Float,
     Int,
     Bool,
 };

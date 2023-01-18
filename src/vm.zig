@@ -70,6 +70,30 @@ pub const VirtualMachine = struct {
                 try self.pushInt(a % b);
             },
 
+            .FloatAdd => try self.pushFloat(try self.popFloat() + try self.popFloat()),
+            .FloatSubtract => {
+                const b = try self.popFloat();
+                const a = try self.popFloat();
+                try self.pushFloat(a - b);
+            },
+            .FloatMultiply => try self.pushFloat(try self.popFloat() * try self.popFloat()),
+            .FloatDivide => {
+                const b = try self.popFloat();
+                if (b == 0.0) {
+                    return VirtualMachineError.DivideByZero;
+                }
+                const a = try self.popFloat();
+                try self.pushFloat(a / b);
+            },
+            .FloatModulo => {
+                const b = try self.popFloat();
+                if (b == 0.0) {
+                    return VirtualMachineError.DivideByZero;
+                }
+                const a = try self.popFloat();
+                try self.pushFloat(@mod(a, b));
+            },
+
             // Bitwise operations
             .BitwiseAnd => try self.pushInt(try self.popInt() & try self.popInt()),
             .BitwiseOr => try self.pushInt(try self.popInt() | try self.popInt()),
@@ -130,6 +154,26 @@ pub const VirtualMachine = struct {
                 const a = try self.popInt();
                 try self.pushBool(a >= b);
             },
+            .FloatLess => {
+                const b = try self.popFloat();
+                const a = try self.popFloat();
+                try self.pushBool(a < b);
+            },
+            .FloatLessEqual => {
+                const b = try self.popFloat();
+                const a = try self.popFloat();
+                try self.pushBool(a <= b);
+            },
+            .FloatGreater => {
+                const b = try self.popFloat();
+                const a = try self.popFloat();
+                try self.pushBool(a > b);
+            },
+            .FloatGreaterEqual => {
+                const b = try self.popFloat();
+                const a = try self.popFloat();
+                try self.pushBool(a >= b);
+            },
             .Call => {
                 const block_index = try self.popBlockIndex();
                 if (block_index >= self.module.blocks.len) {
@@ -155,6 +199,13 @@ pub const VirtualMachine = struct {
                     try self.executeInstruction(i);
                 }
             },
+            .LoadFloat => {
+                const offset = try self.popInt();
+                try self.assertBytesFitInMemory(@sizeOf(f64), offset);
+                var buffer: [@sizeOf(f64)]u8 = undefined;
+                std.mem.copy(u8, &buffer, self.global_memory[offset..][0..@sizeOf(f64)]);
+                try self.pushFloat(@bitCast(f64, buffer));
+            },
             .LoadInt => {
                 const offset = try self.popInt();
                 try self.assertBytesFitInMemory(@sizeOf(u64), offset);
@@ -166,6 +217,12 @@ pub const VirtualMachine = struct {
                 try self.assertBytesFitInMemory(@sizeOf(bool), offset);
                 const byte = self.global_memory[offset];
                 try self.pushBool(byte != 0);
+            },
+            .StoreFloat => {
+                const value = try self.popFloat();
+                const offset = try self.popInt();
+                try self.assertBytesFitInMemory(@sizeOf(f64), offset);
+                std.mem.copy(u8, self.global_memory[offset..][0..@sizeOf(f64)], &@bitCast([@sizeOf(f64)]u8, value));
             },
             .StoreInt => {
                 const value = try self.popInt();
@@ -196,6 +253,10 @@ pub const VirtualMachine = struct {
         try self.push(Value{ .BlockIndex = block_index });
     }
 
+    fn pushFloat(self: *Self, value: f64) VirtualMachineError!void {
+        try self.push(Value{ .Float = value });
+    }
+
     fn pushInt(self: *Self, value: u64) VirtualMachineError!void {
         try self.push(Value{ .Int = value });
     }
@@ -212,6 +273,14 @@ pub const VirtualMachine = struct {
         const value = try self.pop();
         return switch (value) {
             .BlockIndex => |block_index| block_index,
+            else => VirtualMachineError.TypeError,
+        };
+    }
+
+    fn popFloat(self: *Self) VirtualMachineError!f64 {
+        const value = try self.pop();
+        return switch (value) {
+            .Float => |inner_value| inner_value,
             else => VirtualMachineError.TypeError,
         };
     }

@@ -20,6 +20,12 @@ pub const Instruction = union(InstructionTag) {
     Divide,
     Modulo,
 
+    FloatAdd,
+    FloatSubtract,
+    FloatMultiply,
+    FloatDivide,
+    FloatModulo,
+
     // Bitwise operations
     BitwiseAnd,
     BitwiseOr,
@@ -29,24 +35,37 @@ pub const Instruction = union(InstructionTag) {
     ShiftRight,
 
     // Logical operations
-    Equal,
-    NotEqual,
-    Less,
-    LessEqual,
-    Greater,
-    GreaterEqual,
     LogicalAnd,
     LogicalOr,
     LogicalNot,
 
+    Equal,
+    NotEqual,
+
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+
+    FloatLess,
+    FloatLessEqual,
+    FloatGreater,
+    FloatGreaterEqual,
+
+    // Branching operations
     Call,
     ConditionalCall,
 
+    // Load/Store operations
+    LoadFloat,
     LoadInt,
     LoadBool,
+    StoreFloat,
     StoreInt,
     StoreBool,
 
+    // Debug
+    // TODO: Remove all debug instructions
     Print,
 };
 
@@ -64,6 +83,12 @@ pub const InstructionTag = enum(u8) {
     Divide,
     Modulo,
 
+    FloatAdd,
+    FloatSubtract,
+    FloatMultiply,
+    FloatDivide,
+    FloatModulo,
+
     // Bitwise operations
     BitwiseAnd,
     BitwiseOr,
@@ -73,24 +98,37 @@ pub const InstructionTag = enum(u8) {
     ShiftRight,
 
     // Logical operations
-    Equal,
-    NotEqual,
-    Less,
-    LessEqual,
-    Greater,
-    GreaterEqual,
     LogicalAnd,
     LogicalOr,
     LogicalNot,
 
+    Equal,
+    NotEqual,
+
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+
+    FloatLess,
+    FloatLessEqual,
+    FloatGreater,
+    FloatGreaterEqual,
+
+    // Branching operations
     Call,
     ConditionalCall,
 
+    // Load/Store operations
+    LoadFloat,
     LoadInt,
     LoadBool,
+    StoreFloat,
     StoreInt,
     StoreBool,
 
+    // Debug
+    // TODO: Remove all debug instructions
     Print,
 
     pub fn toInstruction(self: Self) Instruction {
@@ -102,6 +140,11 @@ pub const InstructionTag = enum(u8) {
             .Multiply => Instruction.Multiply,
             .Divide => Instruction.Divide,
             .Modulo => Instruction.Modulo,
+            .FloatAdd => Instruction.FloatAdd,
+            .FloatSubtract => Instruction.FloatSubtract,
+            .FloatMultiply => Instruction.FloatMultiply,
+            .FloatDivide => Instruction.FloatDivide,
+            .FloatModulo => Instruction.FloatModulo,
             .BitwiseAnd => Instruction.BitwiseAnd,
             .BitwiseOr => Instruction.BitwiseOr,
             .BitwiseXor => Instruction.BitwiseXor,
@@ -114,13 +157,19 @@ pub const InstructionTag = enum(u8) {
             .LessEqual => Instruction.LessEqual,
             .Greater => Instruction.Greater,
             .GreaterEqual => Instruction.GreaterEqual,
+            .FloatLess => Instruction.FloatLess,
+            .FloatLessEqual => Instruction.FloatLessEqual,
+            .FloatGreater => Instruction.FloatGreater,
+            .FloatGreaterEqual => Instruction.FloatGreaterEqual,
             .LogicalAnd => Instruction.LogicalAnd,
             .LogicalOr => Instruction.LogicalOr,
             .LogicalNot => Instruction.LogicalNot,
             .Call => Instruction.Call,
             .ConditionalCall => Instruction.ConditionalCall,
+            .LoadFloat => Instruction.LoadFloat,
             .LoadInt => Instruction.LoadInt,
             .LoadBool => Instruction.LoadBool,
+            .StoreFloat => Instruction.StoreFloat,
             .StoreInt => Instruction.StoreInt,
             .StoreBool => Instruction.StoreBool,
             .Print => Instruction.Print,
@@ -141,6 +190,7 @@ pub fn instructionsFromBytes(bytes: []const u8, allocator: Allocator) ![]Instruc
                 const value_tag = @intToEnum(ValueTag, try reader.readByte());
                 const value = switch (value_tag) {
                     .BlockIndex => Value{ .BlockIndex = try reader.readIntBig(u32) },
+                    .Float => Value{ .Float = @bitCast(f64, try reader.readBytesNoEof(@sizeOf(f64))) },
                     .Int => Value{ .Int = try reader.readIntBig(u64) },
                     .Bool => Value{ .Bool = try reader.readByte() != 0 },
                 };
@@ -168,6 +218,7 @@ pub fn instructionsToBytes(instructions: []Instruction, allocator: Allocator) ![
                 try writer.writeByte(@enumToInt(value_tag));
                 switch (value) {
                     .BlockIndex => |constant| try writer.writeIntBig(u32, constant),
+                    .Float => |constant| _ = try writer.write(&@bitCast([@sizeOf(f64)]u8, constant)),
                     .Int => |constant| try writer.writeIntBig(u64, constant),
                     .Bool => |constant| try writer.writeByte(@boolToInt(constant)),
                 }
