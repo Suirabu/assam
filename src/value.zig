@@ -26,10 +26,10 @@ pub const Value = union(ValueTag) {
         _ = options;
 
         switch (value) {
-            Value.BlockIndex => |inner_value| try writer.print("{X}\n", .{inner_value}),
-            Value.Float => |inner_value| try writer.print("{d}\n", .{inner_value}),
-            Value.Int => |inner_value| try writer.print("{d}\n", .{inner_value}),
-            Value.Bool => |inner_value| try writer.print("{s}\n", .{if (inner_value) "true" else "false"}),
+            Value.BlockIndex => |inner_value| try writer.print("{X}", .{inner_value}),
+            Value.Float => |inner_value| try writer.print("{d}", .{inner_value}),
+            Value.Int => |inner_value| try writer.print("{d}", .{inner_value}),
+            Value.Bool => |inner_value| try writer.print("{s}", .{if (inner_value) "true" else "false"}),
         }
     }
 };
