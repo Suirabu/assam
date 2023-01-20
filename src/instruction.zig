@@ -59,9 +59,11 @@ pub const Instruction = union(InstructionTag) {
     // Load/Store operations
     LoadFloat,
     LoadInt,
+    LoadByte,
     LoadBool,
     StoreFloat,
     StoreInt,
+    StoreByte,
     StoreBool,
 
     // Debug
@@ -122,9 +124,11 @@ pub const InstructionTag = enum(u8) {
     // Load/Store operations
     LoadFloat,
     LoadInt,
+    LoadByte,
     LoadBool,
     StoreFloat,
     StoreInt,
+    StoreByte,
     StoreBool,
 
     // Debug
@@ -168,9 +172,11 @@ pub const InstructionTag = enum(u8) {
             .ConditionalCall => Instruction.ConditionalCall,
             .LoadFloat => Instruction.LoadFloat,
             .LoadInt => Instruction.LoadInt,
+            .LoadByte => Instruction.LoadByte,
             .LoadBool => Instruction.LoadBool,
             .StoreFloat => Instruction.StoreFloat,
             .StoreInt => Instruction.StoreInt,
+            .StoreByte => Instruction.StoreByte,
             .StoreBool => Instruction.StoreBool,
             .Print => Instruction.Print,
         };
@@ -192,6 +198,7 @@ pub fn instructionsFromBytes(bytes: []const u8, allocator: Allocator) ![]Instruc
                     .BlockIndex => Value{ .BlockIndex = try reader.readIntBig(u32) },
                     .Float => Value{ .Float = @bitCast(f64, try reader.readBytesNoEof(@sizeOf(f64))) },
                     .Int => Value{ .Int = try reader.readIntBig(u64) },
+                    .Byte => Value{ .Byte = try reader.readByte() },
                     .Bool => Value{ .Bool = try reader.readByte() != 0 },
                 };
                 break :blk Instruction{ .Push = value };
@@ -220,6 +227,7 @@ pub fn instructionsToBytes(instructions: []Instruction, allocator: Allocator) ![
                     .BlockIndex => |constant| try writer.writeIntBig(u32, constant),
                     .Float => |constant| _ = try writer.write(&@bitCast([@sizeOf(f64)]u8, constant)),
                     .Int => |constant| try writer.writeIntBig(u64, constant),
+                    .Byte => |constant| try writer.writeByte(constant),
                     .Bool => |constant| try writer.writeByte(@boolToInt(constant)),
                 }
             },

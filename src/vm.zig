@@ -212,6 +212,12 @@ pub const VirtualMachine = struct {
                 const value = std.mem.readIntNative(u64, self.global_memory[offset..][0..@sizeOf(u64)]);
                 try self.pushInt(value);
             },
+            .LoadByte => {
+                const offset = try self.popInt();
+                try self.assertBytesFitInMemory(@sizeOf(u8), offset);
+                const value = self.global_memory[offset];
+                try self.pushByte(value);
+            },
             .LoadBool => {
                 const offset = try self.popInt();
                 try self.assertBytesFitInMemory(@sizeOf(bool), offset);
@@ -229,6 +235,12 @@ pub const VirtualMachine = struct {
                 const offset = try self.popInt();
                 try self.assertBytesFitInMemory(@sizeOf(u64), offset);
                 std.mem.writeIntNative(u64, self.global_memory[offset..][0..@sizeOf(u64)], value);
+            },
+            .StoreByte => {
+                const value = try self.popByte();
+                const offset = try self.popInt();
+                try self.assertBytesFitInMemory(@sizeOf(u8), offset);
+                self.global_memory[offset] = value;
             },
             .StoreBool => {
                 const value = try self.popBool();
@@ -261,6 +273,10 @@ pub const VirtualMachine = struct {
         try self.push(Value{ .Int = value });
     }
 
+    fn pushByte(self: *Self, value: u8) VirtualMachineError!void {
+        try self.push(Value{ .Byte = value });
+    }
+
     fn pushBool(self: *Self, value: bool) VirtualMachineError!void {
         try self.push(Value{ .Bool = value });
     }
@@ -289,6 +305,14 @@ pub const VirtualMachine = struct {
         const value = try self.pop();
         return switch (value) {
             .Int => |inner_value| inner_value,
+            else => VirtualMachineError.TypeError,
+        };
+    }
+
+    fn popByte(self: *Self) VirtualMachineError!u8 {
+        const value = try self.pop();
+        return switch (value) {
+            .Byte => |inner_value| inner_value,
             else => VirtualMachineError.TypeError,
         };
     }

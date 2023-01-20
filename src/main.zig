@@ -63,15 +63,18 @@ test {
     var builder = assam.ModuleBuilder.init(std.testing.allocator);
     defer builder.deinit();
 
-    var result_addr = builder.allocateGlobalFloat();
+    var result_addr = builder.allocateGlobalBytes(2);
 
     var add_block = assam.BlockBuilder.init(&builder);
     var add_block_instructions = [_]assam.Instruction{
         assam.Instruction{ .Push = assam.Value{ .Int = result_addr } },
-        assam.Instruction{ .Push = assam.Value{ .Float = 3.14 } },
-        assam.Instruction{ .Push = assam.Value{ .Float = 17.2 } },
-        assam.Instruction.FloatAdd,
-        assam.Instruction.StoreFloat,
+        assam.Instruction{ .Push = assam.Value{ .Byte = 0xCA } },
+        assam.Instruction.StoreByte,
+        assam.Instruction{ .Push = assam.Value{ .Int = result_addr } },
+        assam.Instruction{ .Push = assam.Value{ .Int = 1 } },
+        assam.Instruction.Add,
+        assam.Instruction{ .Push = assam.Value{ .Byte = 0xFE } },
+        assam.Instruction.StoreByte,
     };
     try add_block.appendInstructions(add_block_instructions[0..]);
     try builder.addBlock(add_block);
@@ -81,7 +84,11 @@ test {
         assam.Instruction{ .Push = assam.Value{ .BlockIndex = add_block.index } },
         assam.Instruction.Call,
         assam.Instruction{ .Push = assam.Value{ .Int = result_addr } },
-        assam.Instruction.LoadFloat,
+        assam.Instruction{ .Push = assam.Value{ .Int = 1 } },
+        assam.Instruction.LoadByte,
+        assam.Instruction{ .Push = assam.Value{ .Int = result_addr } },
+        assam.Instruction.LoadByte,
+        assam.Instruction.Print,
         assam.Instruction.Print,
     };
     try start_block.appendInstructions(start_instructions[0..]);
