@@ -57,13 +57,17 @@ pub const Instruction = union(InstructionTag) {
     ConditionalCall,
 
     // Load/Store operations
+    LoadInt64,
+    LoadInt32,
+    LoadInt16,
+    LoadInt8,
     LoadFloat,
-    LoadInt,
-    LoadByte,
     LoadBool,
+    StoreInt64,
+    StoreInt32,
+    StoreInt16,
+    StoreInt8,
     StoreFloat,
-    StoreInt,
-    StoreByte,
     StoreBool,
 
     // Debug
@@ -122,13 +126,17 @@ pub const InstructionTag = enum(u8) {
     ConditionalCall,
 
     // Load/Store operations
+    LoadInt64,
+    LoadInt32,
+    LoadInt16,
+    LoadInt8,
     LoadFloat,
-    LoadInt,
-    LoadByte,
     LoadBool,
+    StoreInt64,
+    StoreInt32,
+    StoreInt16,
+    StoreInt8,
     StoreFloat,
-    StoreInt,
-    StoreByte,
     StoreBool,
 
     // Debug
@@ -170,13 +178,17 @@ pub const InstructionTag = enum(u8) {
             .LogicalNot => Instruction.LogicalNot,
             .Call => Instruction.Call,
             .ConditionalCall => Instruction.ConditionalCall,
+            .LoadInt64 => Instruction.LoadInt64,
+            .LoadInt32 => Instruction.LoadInt32,
+            .LoadInt16 => Instruction.LoadInt16,
+            .LoadInt8 => Instruction.LoadInt8,
             .LoadFloat => Instruction.LoadFloat,
-            .LoadInt => Instruction.LoadInt,
-            .LoadByte => Instruction.LoadByte,
             .LoadBool => Instruction.LoadBool,
+            .StoreInt64 => Instruction.StoreInt64,
+            .StoreInt32 => Instruction.StoreInt32,
+            .StoreInt16 => Instruction.StoreInt16,
+            .StoreInt8 => Instruction.StoreInt8,
             .StoreFloat => Instruction.StoreFloat,
-            .StoreInt => Instruction.StoreInt,
-            .StoreByte => Instruction.StoreByte,
             .StoreBool => Instruction.StoreBool,
             .Print => Instruction.Print,
         };
@@ -196,9 +208,12 @@ pub fn instructionsFromBytes(bytes: []const u8, allocator: Allocator) ![]Instruc
                 const value_tag = @intToEnum(ValueTag, try reader.readByte());
                 const value = switch (value_tag) {
                     .BlockIndex => Value{ .BlockIndex = try reader.readIntBig(u32) },
+                    .Pointer => Value{ .Pointer = try reader.readIntBig(u32) },
+                    .Int64 => Value{ .Int64 = try reader.readIntBig(u64) },
+                    .Int32 => Value{ .Int64 = try reader.readIntBig(u32) },
+                    .Int16 => Value{ .Int64 = try reader.readIntBig(u16) },
+                    .Int8 => Value{ .Int64 = try reader.readIntBig(u8) },
                     .Float => Value{ .Float = @bitCast(f64, try reader.readBytesNoEof(@sizeOf(f64))) },
-                    .Int => Value{ .Int = try reader.readIntBig(u64) },
-                    .Byte => Value{ .Byte = try reader.readByte() },
                     .Bool => Value{ .Bool = try reader.readByte() != 0 },
                 };
                 break :blk Instruction{ .Push = value };
@@ -225,9 +240,12 @@ pub fn instructionsToBytes(instructions: []Instruction, allocator: Allocator) ![
                 try writer.writeByte(@enumToInt(value_tag));
                 switch (value) {
                     .BlockIndex => |constant| try writer.writeIntBig(u32, constant),
+                    .Pointer => |constant| try writer.writeIntBig(u32, constant),
+                    .Int64 => |constant| try writer.writeIntBig(u64, constant),
+                    .Int32 => |constant| try writer.writeIntBig(u32, constant),
+                    .Int16 => |constant| try writer.writeIntBig(u16, constant),
+                    .Int8 => |constant| try writer.writeIntBig(u8, constant),
                     .Float => |constant| _ = try writer.write(&@bitCast([@sizeOf(f64)]u8, constant)),
-                    .Int => |constant| try writer.writeIntBig(u64, constant),
-                    .Byte => |constant| try writer.writeByte(constant),
                     .Bool => |constant| try writer.writeByte(@boolToInt(constant)),
                 }
             },

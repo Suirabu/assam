@@ -63,18 +63,18 @@ test {
     var builder = assam.ModuleBuilder.init(std.testing.allocator);
     defer builder.deinit();
 
-    var result_addr = builder.allocateGlobalBytes(2);
+    var result_addr = builder.allocateGlobalInt(u16);
 
     var add_block = assam.BlockBuilder.init(&builder);
     var add_block_instructions = [_]assam.Instruction{
-        assam.Instruction{ .Push = assam.Value{ .Int = result_addr } },
-        assam.Instruction{ .Push = assam.Value{ .Byte = 0xCA } },
-        assam.Instruction.StoreByte,
-        assam.Instruction{ .Push = assam.Value{ .Int = result_addr } },
-        assam.Instruction{ .Push = assam.Value{ .Int = 1 } },
+        assam.Instruction{ .Push = assam.Value{ .Pointer = result_addr } },
+        assam.Instruction{ .Push = assam.Value{ .Int8 = 0x01 } },
+        assam.Instruction.StoreInt8,
+        assam.Instruction{ .Push = assam.Value{ .Pointer = result_addr } },
+        assam.Instruction{ .Push = assam.Value{ .Int8 = 1 } },
         assam.Instruction.Add,
-        assam.Instruction{ .Push = assam.Value{ .Byte = 0xFE } },
-        assam.Instruction.StoreByte,
+        assam.Instruction{ .Push = assam.Value{ .Int8 = 0x01 } },
+        assam.Instruction.StoreInt8,
     };
     try add_block.appendInstructions(add_block_instructions[0..]);
     try builder.addBlock(add_block);
@@ -83,12 +83,8 @@ test {
     var start_instructions = [_]assam.Instruction{
         assam.Instruction{ .Push = assam.Value{ .BlockIndex = add_block.index } },
         assam.Instruction.Call,
-        assam.Instruction{ .Push = assam.Value{ .Int = result_addr } },
-        assam.Instruction{ .Push = assam.Value{ .Int = 1 } },
-        assam.Instruction.LoadByte,
-        assam.Instruction{ .Push = assam.Value{ .Int = result_addr } },
-        assam.Instruction.LoadByte,
-        assam.Instruction.Print,
+        assam.Instruction{ .Push = assam.Value{ .Pointer = result_addr } },
+        assam.Instruction.LoadInt16,
         assam.Instruction.Print,
     };
     try start_block.appendInstructions(start_instructions[0..]);
