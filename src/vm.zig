@@ -115,7 +115,7 @@ pub const VirtualMachine = struct {
                 if (!value.isInt()) {
                     return VirtualMachineError.TypeError;
                 }
-                try self.pushInt(value, ~value.toBaseInt());
+                try self.pushInt(value, ~value.toInt());
             },
             .ShiftLeft => {
                 const pair = try self.popIntPair();
@@ -215,29 +215,11 @@ pub const VirtualMachine = struct {
                     try self.executeInstruction(i);
                 }
             },
-            .LoadInt64 => {
+            .LoadInt => {
                 const offset = try self.popPointer();
                 try self.assertBytesFitInMemory(@sizeOf(u64), offset);
                 const value = std.mem.readIntNative(u64, self.global_memory[offset..][0..@sizeOf(u64)]);
-                try self.pushInt(.Int64, value);
-            },
-            .LoadInt32 => {
-                const offset = try self.popPointer();
-                try self.assertBytesFitInMemory(@sizeOf(u32), offset);
-                const value = std.mem.readIntNative(u32, self.global_memory[offset..][0..@sizeOf(u32)]);
-                try self.pushInt(.Int32, value);
-            },
-            .LoadInt16 => {
-                const offset = try self.popPointer();
-                try self.assertBytesFitInMemory(@sizeOf(u16), offset);
-                const value = std.mem.readIntNative(u16, self.global_memory[offset..][0..@sizeOf(u16)]);
-                try self.pushInt(.Int16, value);
-            },
-            .LoadInt8 => {
-                const offset = try self.popPointer();
-                try self.assertBytesFitInMemory(@sizeOf(u8), offset);
-                const value = std.mem.readIntNative(u8, self.global_memory[offset..][0..@sizeOf(u8)]);
-                try self.pushInt(.Int8, value);
+                try self.pushInt(.Int, value);
             },
             .LoadFloat => {
                 const offset = try self.popInt();
@@ -252,29 +234,11 @@ pub const VirtualMachine = struct {
                 const byte = self.global_memory[offset];
                 try self.pushBool(byte != 0);
             },
-            .StoreInt64 => {
+            .StoreInt => {
                 const value = try self.popInt();
                 const offset = try self.popPointer();
                 try self.assertBytesFitInMemory(@sizeOf(u64), offset);
                 std.mem.writeIntNative(u64, self.global_memory[offset..][0..@sizeOf(u64)], value);
-            },
-            .StoreInt32 => {
-                const value = try self.popInt();
-                const offset = try self.popPointer();
-                try self.assertBytesFitInMemory(@sizeOf(u32), offset);
-                std.mem.writeIntNative(u32, self.global_memory[offset..][0..@sizeOf(u32)], @intCast(u32, value));
-            },
-            .StoreInt16 => {
-                const value = try self.popInt();
-                const offset = try self.popPointer();
-                try self.assertBytesFitInMemory(@sizeOf(u16), offset);
-                std.mem.writeIntNative(u16, self.global_memory[offset..][0..@sizeOf(u16)], @intCast(u16, value));
-            },
-            .StoreInt8 => {
-                const value = try self.popInt();
-                const offset = try self.popPointer();
-                try self.assertBytesFitInMemory(@sizeOf(u8), offset);
-                std.mem.writeIntNative(u8, self.global_memory[offset..][0..@sizeOf(u8)], @intCast(u8, value));
             },
             .StoreFloat => {
                 const value = try self.popFloat();
@@ -314,10 +278,7 @@ pub const VirtualMachine = struct {
         try self.push(switch (tag) {
             .BlockIndex => Value{ .BlockIndex = @intCast(u32, value) },
             .Pointer => Value{ .Pointer = @intCast(u32, value) },
-            .Int64 => Value{ .Int64 = value },
-            .Int32 => Value{ .Int32 = @intCast(u32, value) },
-            .Int16 => Value{ .Int16 = @intCast(u16, value) },
-            .Int8 => Value{ .Int8 = @intCast(u8, value) },
+            .Int => Value{ .Int = value },
             else => return VirtualMachineError.TypeError,
         });
     }
@@ -325,10 +286,7 @@ pub const VirtualMachine = struct {
     /// Pushes an integer with type `tag` onto the stack
     fn pushInt(self: *Self, tag: ValueTag, value: u64) VirtualMachineError!void {
         try self.push(switch (tag) {
-            .Int64 => Value{ .Int64 = value },
-            .Int32 => Value{ .Int32 = @intCast(u32, value) },
-            .Int16 => Value{ .Int16 = @intCast(u16, value) },
-            .Int8 => Value{ .Int8 = @intCast(u8, value) },
+            .Int => Value{ .Int = value },
             else => return VirtualMachineError.TypeError,
         });
     }
@@ -370,8 +328,8 @@ pub const VirtualMachine = struct {
         }
         const priority_tag = try Value.getPriorityIntTag(a, b);
         return .{
-            .a = a.toBaseInt(),
-            .b = b.toBaseInt(),
+            .a = a.toInt(),
+            .b = b.toInt(),
             .priority_tag = priority_tag,
         };
     }
@@ -385,8 +343,8 @@ pub const VirtualMachine = struct {
         }
         const priority_tag = try Value.getPriorityIntTag(a, b);
         return .{
-            .a = a.toBaseInt(),
-            .b = b.toBaseInt(),
+            .a = a.toInt(),
+            .b = b.toInt(),
             .priority_tag = priority_tag,
         };
     }
@@ -396,7 +354,7 @@ pub const VirtualMachine = struct {
         if (!value.isInt()) {
             return VirtualMachineError.TypeError;
         }
-        return value.toBaseInt();
+        return value.toInt();
     }
 
     fn popInt(self: *Self) VirtualMachineError!u64 {
@@ -404,7 +362,7 @@ pub const VirtualMachine = struct {
         if (!value.isInt()) {
             return VirtualMachineError.TypeError;
         }
-        return value.toBaseInt();
+        return value.toInt();
     }
 
     fn popFloat(self: *Self) VirtualMachineError!f64 {
