@@ -42,30 +42,30 @@ pub const VirtualMachine = struct {
     pub fn executeInstruction(self: *Self, instruction: Instruction) VirtualMachineError!void {
         switch (instruction) {
             // Stack operations
-            .Push => |value| try self.push(value),
-            .Drop => _ = try self.pop(),
+            .push => |value| try self.push(value),
+            .drop => _ = try self.pop(),
 
             // Arithmetic operations
-            .Add => {
+            .add => {
                 const pair = try self.popNativeIntPair();
                 try self.pushNativeInt(pair.priority_tag, pair.a +% pair.b);
             },
-            .Subtract => {
+            .subtract => {
                 const pair = try self.popNativeIntPair();
                 try self.pushNativeInt(pair.priority_tag, pair.a -% pair.b);
             },
-            .Multiply => {
+            .multiply => {
                 const pair = try self.popIntPair();
                 try self.pushInt(pair.priority_tag, pair.a *% pair.b);
             },
-            .Divide => {
+            .divide => {
                 const pair = try self.popIntPair();
                 if (pair.b == 0) {
                     return VirtualMachineError.DivideByZero;
                 }
                 try self.pushInt(pair.priority_tag, pair.a / pair.b);
             },
-            .Modulo => {
+            .modulo => {
                 const pair = try self.popIntPair();
                 if (pair.b == 0) {
                     return VirtualMachineError.DivideByZero;
@@ -73,14 +73,14 @@ pub const VirtualMachine = struct {
                 try self.pushInt(pair.priority_tag, pair.a % pair.b);
             },
 
-            .FloatAdd => try self.pushFloat(try self.popFloat() + try self.popFloat()),
-            .FloatSubtract => {
+            .float_add => try self.pushFloat(try self.popFloat() + try self.popFloat()),
+            .float_subtract => {
                 const b = try self.popFloat();
                 const a = try self.popFloat();
                 try self.pushFloat(a - b);
             },
-            .FloatMultiply => try self.pushFloat(try self.popFloat() * try self.popFloat()),
-            .FloatDivide => {
+            .float_multiply => try self.pushFloat(try self.popFloat() * try self.popFloat()),
+            .float_divide => {
                 const b = try self.popFloat();
                 if (b == 0.0) {
                     return VirtualMachineError.DivideByZero;
@@ -88,7 +88,7 @@ pub const VirtualMachine = struct {
                 const a = try self.popFloat();
                 try self.pushFloat(a / b);
             },
-            .FloatModulo => {
+            .float_modulo => {
                 const b = try self.popFloat();
                 if (b == 0.0) {
                     return VirtualMachineError.DivideByZero;
@@ -98,99 +98,99 @@ pub const VirtualMachine = struct {
             },
 
             // Bitwise operations
-            .BitwiseAnd => {
+            .bitwise_and => {
                 const pair = try self.popIntPair();
                 try self.pushInt(pair.priority_tag, pair.a & pair.b);
             },
-            .BitwiseOr => {
+            .bitwise_or => {
                 const pair = try self.popIntPair();
                 try self.pushInt(pair.priority_tag, pair.a | pair.b);
             },
-            .BitwiseXor => {
+            .bitwise_xor => {
                 const pair = try self.popIntPair();
                 try self.pushInt(pair.priority_tag, pair.a ^ pair.b);
             },
-            .BitwiseNot => {
+            .bitwise_not => {
                 const value = try self.pop();
                 if (!value.isInt()) {
                     return VirtualMachineError.TypeError;
                 }
                 try self.pushInt(value, ~value.toInt());
             },
-            .ShiftLeft => {
+            .shift_left => {
                 const pair = try self.popIntPair();
                 try self.pushInt(pair.priority_tag, pair.a << @intCast(u6, pair.b));
             },
-            .ShiftRight => {
+            .shift_right => {
                 const pair = try self.popIntPair();
                 try self.pushInt(pair.priority_tag, pair.a >> @intCast(u6, pair.b));
             },
 
             // Logical operations
-            .LogicalAnd => {
+            .logical_and => {
                 const b = try self.popBool();
                 const a = try self.popBool();
                 try self.pushBool(b and a);
             },
-            .LogicalOr => {
+            .logical_or => {
                 const b = try self.popBool();
                 const a = try self.popBool();
                 try self.pushBool(b or a);
             },
-            .LogicalNot => try self.pushBool(!try self.popBool()),
-            .Equal => {
+            .logical_not => try self.pushBool(!try self.popBool()),
+            .equal => {
                 const b = try self.pop();
                 const a = try self.pop();
                 try assertEqualTypes(a, b);
                 try self.pushBool(a.eql(b));
             },
-            .NotEqual => {
+            .not_equal => {
                 const b = try self.pop();
                 const a = try self.pop();
                 try assertEqualTypes(a, b);
                 try self.pushBool(!a.eql(b));
             },
-            .Less => {
+            .less => {
                 const b = try self.popNativeInt();
                 const a = try self.popNativeInt();
                 try self.pushBool(a < b);
             },
-            .LessEqual => {
+            .less_equal => {
                 const b = try self.popNativeInt();
                 const a = try self.popNativeInt();
                 try self.pushBool(a <= b);
             },
-            .Greater => {
+            .greater => {
                 const b = try self.popNativeInt();
                 const a = try self.popNativeInt();
                 try self.pushBool(a > b);
             },
-            .GreaterEqual => {
+            .greater_equal => {
                 const b = try self.popNativeInt();
                 const a = try self.popNativeInt();
                 try self.pushBool(a >= b);
             },
-            .FloatLess => {
+            .float_less => {
                 const b = try self.popFloat();
                 const a = try self.popFloat();
                 try self.pushBool(a < b);
             },
-            .FloatLessEqual => {
+            .float_less_equal => {
                 const b = try self.popFloat();
                 const a = try self.popFloat();
                 try self.pushBool(a <= b);
             },
-            .FloatGreater => {
+            .float_greater => {
                 const b = try self.popFloat();
                 const a = try self.popFloat();
                 try self.pushBool(a > b);
             },
-            .FloatGreaterEqual => {
+            .float_greater_equal => {
                 const b = try self.popFloat();
                 const a = try self.popFloat();
                 try self.pushBool(a >= b);
             },
-            .Call => {
+            .call => {
                 const block_index = try self.popBlockIndex();
                 if (block_index >= self.module.blocks.len) {
                     return VirtualMachineError.InvalidBlockIndex;
@@ -200,7 +200,7 @@ pub const VirtualMachine = struct {
                     try self.executeInstruction(i);
                 }
             },
-            .ConditionalCall => {
+            .conditional_call => {
                 const condition = try self.popBool();
                 const block_index = try self.popBlockIndex();
                 if (block_index >= self.module.blocks.len) {
@@ -215,44 +215,44 @@ pub const VirtualMachine = struct {
                     try self.executeInstruction(i);
                 }
             },
-            .LoadInt => {
+            .load_int => {
                 const offset = try self.popPointer();
                 try self.assertBytesFitInMemory(@sizeOf(u64), offset);
                 const value = std.mem.readIntNative(u64, self.global_memory[offset..][0..@sizeOf(u64)]);
-                try self.pushInt(.Int, value);
+                try self.pushInt(.int, value);
             },
-            .LoadFloat => {
+            .load_float => {
                 const offset = try self.popInt();
                 try self.assertBytesFitInMemory(@sizeOf(f64), offset);
                 var buffer: [@sizeOf(f64)]u8 = undefined;
                 std.mem.copy(u8, &buffer, self.global_memory[offset..][0..@sizeOf(f64)]);
                 try self.pushFloat(@bitCast(f64, buffer));
             },
-            .LoadBool => {
+            .load_bool => {
                 const offset = try self.popInt();
                 try self.assertBytesFitInMemory(@sizeOf(bool), offset);
                 const byte = self.global_memory[offset];
                 try self.pushBool(byte != 0);
             },
-            .StoreInt => {
+            .store_int => {
                 const value = try self.popInt();
                 const offset = try self.popPointer();
                 try self.assertBytesFitInMemory(@sizeOf(u64), offset);
                 std.mem.writeIntNative(u64, self.global_memory[offset..][0..@sizeOf(u64)], value);
             },
-            .StoreFloat => {
+            .store_float => {
                 const value = try self.popFloat();
                 const offset = try self.popInt();
                 try self.assertBytesFitInMemory(@sizeOf(f64), offset);
                 std.mem.copy(u8, self.global_memory[offset..][0..@sizeOf(f64)], &@bitCast([@sizeOf(f64)]u8, value));
             },
-            .StoreBool => {
+            .store_bool => {
                 const value = try self.popBool();
                 const offset = try self.popInt();
                 try self.assertBytesFitInMemory(@sizeOf(bool), offset);
                 self.global_memory[offset] = @boolToInt(value);
             },
-            .Print => {
+            .print => {
                 const value = try self.pop();
                 std.debug.print("{}\n", .{value});
             },
@@ -266,19 +266,19 @@ pub const VirtualMachine = struct {
     }
 
     fn pushBlockIndex(self: *Self, block_index: u32) VirtualMachineError!void {
-        try self.push(Value{ .BlockIndex = block_index });
+        try self.push(Value{ .block_index = block_index });
     }
 
     fn pushPointer(self: *Self, address: u32) VirtualMachineError!void {
-        try self.push(Value{ .Pointer = address });
+        try self.push(Value{ .pointer = address });
     }
 
     /// Pushes a native integer with type `tag` onto the stack
     fn pushNativeInt(self: *Self, tag: ValueTag, value: u64) VirtualMachineError!void {
         try self.push(switch (tag) {
-            .BlockIndex => Value{ .BlockIndex = @intCast(u32, value) },
-            .Pointer => Value{ .Pointer = @intCast(u32, value) },
-            .Int => Value{ .Int = value },
+            .block_index => Value{ .block_index = @intCast(u32, value) },
+            .pointer => Value{ .pointer = @intCast(u32, value) },
+            .int => Value{ .int = value },
             else => return VirtualMachineError.TypeError,
         });
     }
@@ -286,17 +286,17 @@ pub const VirtualMachine = struct {
     /// Pushes an integer with type `tag` onto the stack
     fn pushInt(self: *Self, tag: ValueTag, value: u64) VirtualMachineError!void {
         try self.push(switch (tag) {
-            .Int => Value{ .Int = value },
+            .int => Value{ .int = value },
             else => return VirtualMachineError.TypeError,
         });
     }
 
     fn pushFloat(self: *Self, value: f64) VirtualMachineError!void {
-        try self.push(Value{ .Float = value });
+        try self.push(Value{ .float = value });
     }
 
     fn pushBool(self: *Self, value: bool) VirtualMachineError!void {
-        try self.push(Value{ .Bool = value });
+        try self.push(Value{ .bool = value });
     }
 
     fn pop(self: *Self) VirtualMachineError!Value {
@@ -306,7 +306,7 @@ pub const VirtualMachine = struct {
     fn popBlockIndex(self: *Self) VirtualMachineError!u32 {
         const value = try self.pop();
         return switch (value) {
-            .BlockIndex => |block_index| block_index,
+            .block_index => |block_index| block_index,
             else => VirtualMachineError.TypeError,
         };
     }
@@ -314,7 +314,7 @@ pub const VirtualMachine = struct {
     fn popPointer(self: *Self) VirtualMachineError!u32 {
         const value = try self.pop();
         return switch (value) {
-            .Pointer => |pointer| pointer,
+            .pointer => |pointer| pointer,
             else => VirtualMachineError.TypeError,
         };
     }
@@ -368,7 +368,7 @@ pub const VirtualMachine = struct {
     fn popFloat(self: *Self) VirtualMachineError!f64 {
         const value = try self.pop();
         return switch (value) {
-            .Float => |inner_value| inner_value,
+            .float => |inner_value| inner_value,
             else => VirtualMachineError.TypeError,
         };
     }
@@ -376,7 +376,7 @@ pub const VirtualMachine = struct {
     fn popBool(self: *Self) VirtualMachineError!bool {
         const value = try self.pop();
         return switch (value) {
-            .Bool => |inner_value| inner_value,
+            .bool => |inner_value| inner_value,
             else => VirtualMachineError.TypeError,
         };
     }

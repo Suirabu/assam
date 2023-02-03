@@ -10,169 +10,169 @@ pub const Block = []Instruction;
 
 pub const Instruction = union(InstructionTag) {
     // Stack operations
-    Push: Value,
-    Drop,
+    push: Value,
+    drop,
 
     // Arithmetic operations
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
-    Modulo,
+    add,
+    subtract,
+    multiply,
+    divide,
+    modulo,
 
-    FloatAdd,
-    FloatSubtract,
-    FloatMultiply,
-    FloatDivide,
-    FloatModulo,
+    float_add,
+    float_subtract,
+    float_multiply,
+    float_divide,
+    float_modulo,
 
     // Bitwise operations
-    BitwiseAnd,
-    BitwiseOr,
-    BitwiseXor,
-    BitwiseNot,
-    ShiftLeft,
-    ShiftRight,
+    bitwise_and,
+    bitwise_or,
+    bitwise_xor,
+    bitwise_not,
+    shift_left,
+    shift_right,
 
     // Logical operations
-    LogicalAnd,
-    LogicalOr,
-    LogicalNot,
+    logical_and,
+    logical_or,
+    logical_not,
 
-    Equal,
-    NotEqual,
+    equal,
+    not_equal,
 
-    Less,
-    LessEqual,
-    Greater,
-    GreaterEqual,
+    less,
+    less_equal,
+    greater,
+    greater_equal,
 
-    FloatLess,
-    FloatLessEqual,
-    FloatGreater,
-    FloatGreaterEqual,
+    float_less,
+    float_less_equal,
+    float_greater,
+    float_greater_equal,
 
     // Branching operations
-    Call,
-    ConditionalCall,
+    call,
+    conditional_call,
 
     // Load/Store operations
-    LoadInt,
-    LoadFloat,
-    LoadBool,
-    StoreInt,
-    StoreFloat,
-    StoreBool,
+    load_int,
+    load_float,
+    load_bool,
+    store_int,
+    store_float,
+    store_bool,
 
     // Debug
     // TODO: Remove all debug instructions
-    Print,
+    print,
 };
 
 pub const InstructionTag = enum(u8) {
     const Self = @This();
 
     // Stack operations
-    Push,
-    Drop,
+    push,
+    drop,
 
     // Arithmetic operations
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
-    Modulo,
+    add,
+    subtract,
+    multiply,
+    divide,
+    modulo,
 
-    FloatAdd,
-    FloatSubtract,
-    FloatMultiply,
-    FloatDivide,
-    FloatModulo,
+    float_add,
+    float_subtract,
+    float_multiply,
+    float_divide,
+    float_modulo,
 
     // Bitwise operations
-    BitwiseAnd,
-    BitwiseOr,
-    BitwiseXor,
-    BitwiseNot,
-    ShiftLeft,
-    ShiftRight,
+    bitwise_and,
+    bitwise_or,
+    bitwise_xor,
+    bitwise_not,
+    shift_left,
+    shift_right,
 
     // Logical operations
-    LogicalAnd,
-    LogicalOr,
-    LogicalNot,
+    logical_and,
+    logical_or,
+    logical_not,
 
-    Equal,
-    NotEqual,
+    equal,
+    not_equal,
 
-    Less,
-    LessEqual,
-    Greater,
-    GreaterEqual,
+    less,
+    less_equal,
+    greater,
+    greater_equal,
 
-    FloatLess,
-    FloatLessEqual,
-    FloatGreater,
-    FloatGreaterEqual,
+    float_less,
+    float_less_equal,
+    float_greater,
+    float_greater_equal,
 
     // Branching operations
-    Call,
-    ConditionalCall,
+    call,
+    conditional_call,
 
     // Load/Store operations
-    LoadInt,
-    LoadFloat,
-    LoadBool,
-    StoreInt,
-    StoreFloat,
-    StoreBool,
+    load_int,
+    load_float,
+    load_bool,
+    store_int,
+    store_float,
+    store_bool,
 
     // Debug
     // TODO: Remove all debug instructions
-    Print,
+    print,
 
     pub fn toInstruction(self: Self) Instruction {
         return switch (self) {
-            .Push => Instruction{ .Push = undefined },
-            .Drop => Instruction.Drop,
-            .Add => Instruction.Add,
-            .Subtract => Instruction.Subtract,
-            .Multiply => Instruction.Multiply,
-            .Divide => Instruction.Divide,
-            .Modulo => Instruction.Modulo,
-            .FloatAdd => Instruction.FloatAdd,
-            .FloatSubtract => Instruction.FloatSubtract,
-            .FloatMultiply => Instruction.FloatMultiply,
-            .FloatDivide => Instruction.FloatDivide,
-            .FloatModulo => Instruction.FloatModulo,
-            .BitwiseAnd => Instruction.BitwiseAnd,
-            .BitwiseOr => Instruction.BitwiseOr,
-            .BitwiseXor => Instruction.BitwiseXor,
-            .BitwiseNot => Instruction.BitwiseNot,
-            .ShiftLeft => Instruction.ShiftLeft,
-            .ShiftRight => Instruction.ShiftRight,
-            .Equal => Instruction.Equal,
-            .NotEqual => Instruction.NotEqual,
-            .Less => Instruction.Less,
-            .LessEqual => Instruction.LessEqual,
-            .Greater => Instruction.Greater,
-            .GreaterEqual => Instruction.GreaterEqual,
-            .FloatLess => Instruction.FloatLess,
-            .FloatLessEqual => Instruction.FloatLessEqual,
-            .FloatGreater => Instruction.FloatGreater,
-            .FloatGreaterEqual => Instruction.FloatGreaterEqual,
-            .LogicalAnd => Instruction.LogicalAnd,
-            .LogicalOr => Instruction.LogicalOr,
-            .LogicalNot => Instruction.LogicalNot,
-            .Call => Instruction.Call,
-            .ConditionalCall => Instruction.ConditionalCall,
-            .LoadInt => Instruction.LoadInt,
-            .LoadFloat => Instruction.LoadFloat,
-            .LoadBool => Instruction.LoadBool,
-            .StoreInt => Instruction.StoreInt,
-            .StoreFloat => Instruction.StoreFloat,
-            .StoreBool => Instruction.StoreBool,
-            .Print => Instruction.Print,
+            .push => Instruction{ .push = undefined },
+            .drop => Instruction.drop,
+            .add => Instruction.add,
+            .subtract => Instruction.subtract,
+            .multiply => Instruction.multiply,
+            .divide => Instruction.divide,
+            .modulo => Instruction.modulo,
+            .float_add => Instruction.float_add,
+            .float_subtract => Instruction.float_subtract,
+            .float_multiply => Instruction.float_multiply,
+            .float_divide => Instruction.float_divide,
+            .float_modulo => Instruction.float_modulo,
+            .bitwise_and => Instruction.bitwise_and,
+            .bitwise_or => Instruction.bitwise_or,
+            .bitwise_xor => Instruction.bitwise_xor,
+            .bitwise_not => Instruction.bitwise_not,
+            .shift_left => Instruction.shift_left,
+            .shift_right => Instruction.shift_right,
+            .equal => Instruction.equal,
+            .not_equal => Instruction.not_equal,
+            .less => Instruction.less,
+            .less_equal => Instruction.less_equal,
+            .greater => Instruction.greater,
+            .greater_equal => Instruction.greater_equal,
+            .float_less => Instruction.float_less,
+            .float_less_equal => Instruction.float_less_equal,
+            .float_greater => Instruction.float_greater,
+            .float_greater_equal => Instruction.float_greater_equal,
+            .logical_and => Instruction.logical_and,
+            .logical_or => Instruction.logical_or,
+            .logical_not => Instruction.logical_not,
+            .call => Instruction.call,
+            .conditional_call => Instruction.conditional_call,
+            .load_int => Instruction.load_int,
+            .load_float => Instruction.load_float,
+            .load_bool => Instruction.load_bool,
+            .store_int => Instruction.store_int,
+            .store_float => Instruction.store_float,
+            .store_bool => Instruction.store_bool,
+            .print => Instruction.print,
         };
     }
 };
@@ -186,7 +186,7 @@ pub fn instructionsFromBytes(bytes: []const u8, allocator: Allocator) ![]Instruc
     while (true) {
         const tag = @intToEnum(InstructionTag, reader.readByte() catch break);
         const instruction = switch (tag) {
-            .Push => blk: {
+            .push => blk: {
                 const value_tag = @intToEnum(ValueTag, try reader.readByte());
                 const value = switch (value_tag) {
                     .BlockIndex => Value{ .BlockIndex = try reader.readIntBig(u32) },
@@ -214,7 +214,7 @@ pub fn instructionsToBytes(instructions: []Instruction, allocator: Allocator) ![
         try writer.writeByte(@enumToInt(tag));
 
         switch (instruction) {
-            .Push => |value| {
+            .push => |value| {
                 const value_tag: ValueTag = value;
                 try writer.writeByte(@enumToInt(value_tag));
                 switch (value) {

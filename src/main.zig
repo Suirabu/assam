@@ -67,22 +67,22 @@ test {
 
     var add_block = assam.BlockBuilder.init(&builder);
     var add_block_instructions = [_]assam.Instruction{
-        assam.Instruction{ .Push = assam.Value{ .Pointer = result_addr } },
-        assam.Instruction{ .Push = assam.Value{ .Int = 0xDEAD_0000 } },
-        assam.Instruction{ .Push = assam.Value{ .Int = 0x0000_BEEF } },
-        assam.Instruction.BitwiseOr,
-        assam.Instruction.StoreInt,
+        assam.Instruction{ .push = assam.Value{ .pointer = result_addr } },
+        assam.Instruction{ .push = assam.Value{ .int = 0xDEAD_0000 } },
+        assam.Instruction{ .push = assam.Value{ .int = 0x0000_BEEF } },
+        assam.Instruction.bitwise_or,
+        assam.Instruction.store_int,
     };
     try add_block.appendInstructions(add_block_instructions[0..]);
     try builder.addBlock(add_block);
 
     var start_block = assam.BlockBuilder.init(&builder);
     var start_instructions = [_]assam.Instruction{
-        assam.Instruction{ .Push = assam.Value{ .BlockIndex = add_block.index } },
-        assam.Instruction.Call,
-        assam.Instruction{ .Push = assam.Value{ .Pointer = result_addr } },
-        assam.Instruction.LoadInt,
-        assam.Instruction.Print,
+        assam.Instruction{ .push = assam.Value{ .block_index = add_block.index } },
+        assam.Instruction.call,
+        assam.Instruction{ .push = assam.Value{ .pointer = result_addr } },
+        assam.Instruction.load_int,
+        assam.Instruction.print,
     };
     try start_block.appendInstructions(start_instructions[0..]);
     try builder.addBlock(start_block);
