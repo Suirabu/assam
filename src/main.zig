@@ -63,25 +63,27 @@ test {
     var builder = assam.ModuleBuilder.init(std.testing.allocator);
     defer builder.deinit();
 
-    var result_addr = builder.allocateGlobalInt(u64);
+    var result_addr = builder.allocateGlobalInt();
 
     var add_block = assam.BlockBuilder.init(&builder);
     var add_block_instructions = [_]assam.Instruction{
-        assam.Instruction{ .push = assam.Value{ .pointer = result_addr } },
-        assam.Instruction{ .push = assam.Value{ .int = 0xDEAD_0000 } },
-        assam.Instruction{ .push = assam.Value{ .int = 0x0000_BEEF } },
-        assam.Instruction.bitwise_or,
-        assam.Instruction.store_int,
+        assam.Instruction{ .ptr_push = result_addr },
+        assam.Instruction{ .int_push = 0xDEAD_0000 },
+        assam.Instruction{ .int_push = 0x0000_BEEF },
+        assam.Instruction.int_or,
+        assam.Instruction.int_store,
     };
     try add_block.appendInstructions(add_block_instructions[0..]);
     try builder.addBlock(add_block);
 
     var start_block = assam.BlockBuilder.init(&builder);
     var start_instructions = [_]assam.Instruction{
-        assam.Instruction{ .push = assam.Value{ .block_index = add_block.index } },
+        assam.Instruction{ .block_index_push = add_block.index },
         assam.Instruction.call,
-        assam.Instruction{ .push = assam.Value{ .pointer = result_addr } },
-        assam.Instruction.load_int,
+        assam.Instruction{ .ptr_push = result_addr },
+        assam.Instruction.int_load,
+        assam.Instruction.print,
+        assam.Instruction{ .bool_push = true },
         assam.Instruction.print,
     };
     try start_block.appendInstructions(start_instructions[0..]);

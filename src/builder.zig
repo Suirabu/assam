@@ -87,30 +87,25 @@ pub const ModuleBuilder = struct {
         return module;
     }
 
-    pub fn allocateGlobalBytes(self: *Self, size: u32) u32 {
+    pub fn allocateGlobalBytes(self: *Self, size: u64) u64 {
         const offset = self.global_memory_size;
         self.global_memory_size += size;
         return offset;
     }
 
-    pub fn allocateGlobalInt(self: *Self, comptime T: type) u32 {
-        switch (T) {
-            u64, u32, u16, u8 => {
-                const offset = self.global_memory_size;
-                self.global_memory_size += @sizeOf(T);
-                return offset;
-            },
-            else => @compileError("Use of unsupported integer type"),
-        }
-    }
-
-    pub fn allocateGlobalFloat(self: *Self) u32 {
+    pub fn allocateGlobalInt(self: *Self) u64 {
         const offset = self.global_memory_size;
         self.global_memory_size += @sizeOf(f64);
         return offset;
     }
 
-    pub fn allocateGlobalBool(self: *Self) u32 {
+    pub fn allocateGlobalFloat(self: *Self) u64 {
+        const offset = self.global_memory_size;
+        self.global_memory_size += @sizeOf(f64);
+        return offset;
+    }
+
+    pub fn allocateGlobalBool(self: *Self) u64 {
         const offset = self.global_memory_size;
         self.global_memory_size += @sizeOf(bool);
         return offset;
