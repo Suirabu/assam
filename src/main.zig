@@ -82,8 +82,8 @@ test {
         assam.Instruction.call,
         assam.Instruction{ .ptr_push = result_addr },
         assam.Instruction.int_load,
-        assam.Instruction.print,
-        assam.Instruction{ .bool_push = true },
+        assam.Instruction{ .int_push = 0xDEADBEEF },
+        assam.Instruction.int_equal,
         assam.Instruction.print,
     };
     try start_block.appendInstructions(start_instructions[0..]);
