@@ -78,8 +78,7 @@ test {
 
     var start_block = assam.BlockBuilder.init(&builder);
     var start_instructions = [_]assam.Instruction{
-        assam.Instruction{ .block_index_push = add_block.index },
-        assam.Instruction.call,
+        assam.Instruction{ .call = add_block.index },
         assam.Instruction{ .ptr_push = result_addr },
         assam.Instruction.int_load,
         assam.Instruction{ .int_push = 0xDEADBEEF },

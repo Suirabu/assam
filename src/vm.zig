@@ -240,33 +240,18 @@ pub const VirtualMachine = struct {
 
             .ptr_to_int => try self.pushInt(try self.popPtr()),
 
-            // Block index instructions
-            .block_index_push => |value| try self.pushBlockIndex(value),
-
             // Branching
-            .call => {
-                const block_index = try self.popBlockIndex();
-                if (block_index >= self.module.blocks.len) {
-                    return VirtualMachineError.InvalidBlockIndex;
-                }
-
+            .call => |block_index| {
                 for (self.module.blocks[block_index]) |i| {
                     try self.executeInstruction(i);
                 }
             },
-            .conditional_call => {
+            .call_if => |block_index| {
                 const condition = try self.popBool();
-                const block_index = try self.popBlockIndex();
-                if (block_index >= self.module.blocks.len) {
-                    return VirtualMachineError.InvalidBlockIndex;
-                }
-
-                if (!condition) {
-                    return;
-                }
-
-                for (self.module.blocks[block_index]) |i| {
-                    try self.executeInstruction(i);
+                if (condition) {
+                    for (self.module.blocks[block_index]) |i| {
+                        try self.executeInstruction(i);
+                    }
                 }
             },
 
@@ -299,10 +284,6 @@ pub const VirtualMachine = struct {
 
     fn pushPtr(self: *Self, address: u64) VirtualMachineError!void {
         try self.push(Value{ .ptr = address });
-    }
-
-    fn pushBlockIndex(self: *Self, block_index: u32) VirtualMachineError!void {
-        try self.push(Value{ .block_index = block_index });
     }
 
     fn pop(self: *Self) VirtualMachineError!Value {
@@ -341,14 +322,6 @@ pub const VirtualMachine = struct {
         };
     }
 
-    fn popBlockIndex(self: *Self) VirtualMachineError!u32 {
-        const value = try self.pop();
-        return switch (value) {
-            .block_index => |block_index| block_index,
-            else => VirtualMachineError.TypeError,
-        };
-    }
-
     fn assertBytesFitInMemory(self: *Self, size: u64, offset: u64) VirtualMachineError!void {
         if (offset + size > self.global_memory.len) {
             return VirtualMachineError.InvalidGlobalOffset;
@@ -362,7 +335,6 @@ pub const VirtualMachineError = error{
     DivideByZero,
     TypeError,
     MissingModule,
-    InvalidBlockIndex,
     InvalidGlobalOffset,
     UnsupportedIntegerType,
 };

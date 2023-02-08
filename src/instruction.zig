@@ -85,12 +85,9 @@ pub const Instruction = union(InstructionTag) {
 
     ptr_to_int,
 
-    // Block index instructions
-    block_index_push: u32,
-
     // Branching
-    call,
-    conditional_call,
+    call: u32,
+    call_if: u32,
 
     // Stack manipulation
     drop,
@@ -176,12 +173,9 @@ pub const InstructionTag = enum(u8) {
 
     ptr_to_int,
 
-    // Block index instructions
-    block_index_push,
-
     // Branching
     call,
-    conditional_call,
+    call_if,
 
     // Stack manipulation
     drop,
@@ -241,9 +235,8 @@ pub const InstructionTag = enum(u8) {
             .ptr_equal => Instruction.ptr_equal,
             .ptr_not_equal => Instruction.ptr_not_equals,
             .ptr_to_int => Instruction.ptr_to_int,
-            .block_index_push => Instruction{ .block_index_push = undefined },
-            .call => Instruction.call,
-            .conditional_call => Instruction.conditional_call,
+            .call => Instruction{ .call = undefined },
+            .call_if => Instruction{ .call_if = undefined },
             .drop => Instruction.drop,
             .print => Instruction.print,
         };
@@ -263,7 +256,8 @@ pub fn instructionsFromBytes(bytes: []const u8, allocator: Allocator) ![]Instruc
             .float_push => Instruction{ .float_push = @bitCast(f64, try reader.readBytesNoEof(@sizeOf(f64))) },
             .bool_push => Instruction{ .bool_push = try reader.readByte() != 0 },
             .ptr_push => Instruction{ .ptr_push = try reader.readIntBig(u64) },
-            .block_index_push => Instruction{ .block_index_push = try reader.readIntBig(u32) },
+            .call => Instruction{ .call = try reader.readIntBig(u32) },
+            .call_if => Instruction{ .call_if = try reader.readIntBig(u32) },
             else => tag.toInstruction(),
         };
         try instructions.append(instruction);
@@ -285,7 +279,8 @@ pub fn instructionsToBytes(instructions: []Instruction, allocator: Allocator) ![
             .float_push => |value| try writer.write(&@bitCast([@sizeOf(f64)]u8, value)),
             .bool_push => |value| try writer.writeByte(@boolToInt(value)),
             .ptr_push => |value| try writer.writeIntBig(u64, value),
-            .block_index_push => |value| try writer.writeIntBig(u32, value),
+            .call => |value| try writer.writeIntBig(u32, value),
+            .call_if => |value| try writer.writeIntBig(u32, value),
             else => {},
         }
     }
