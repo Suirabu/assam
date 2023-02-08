@@ -11,24 +11,28 @@ pub fn build(b: *std.build.Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
-    const exe = b.addExecutable("avm", "src/main.zig");
-    exe.setTarget(target);
-    exe.setBuildMode(mode);
-    exe.install();
+    const assam = std.build.Pkg{
+        .name = "assam",
+        .source = std.build.FileSource{
+            .path = "lib/assam.zig",
+        },
+    };
 
-    const run_cmd = exe.run();
-    run_cmd.step.dependOn(b.getInstallStep());
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
+    // Assam virtual machine
+    {
+        const avm = b.addExecutable("avm", "avm/main.zig");
+        avm.setTarget(target);
+        avm.setBuildMode(mode);
+        avm.addPackage(assam);
+        avm.install();
+
+        const run_cmd = avm.run();
+        run_cmd.step.dependOn(b.getInstallStep());
+        if (b.args) |args| {
+            run_cmd.addArgs(args);
+        }
+
+        const run_step = b.step("run-avm", "Run the Assam virtual machine");
+        run_step.dependOn(&run_cmd.step);
     }
-
-    const run_step = b.step("run", "Run the Assam virtual machine");
-    run_step.dependOn(&run_cmd.step);
-
-    const exe_tests = b.addTest("src/main.zig");
-    exe_tests.setTarget(target);
-    exe_tests.setBuildMode(mode);
-
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&exe_tests.step);
 }

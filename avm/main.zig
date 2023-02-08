@@ -3,7 +3,7 @@ const fs = std.fs;
 const process = std.process;
 const assert = std.debug.assert;
 
-const assam = @import("assam.zig");
+const assam = @import("assam");
 const BytecodeModule = assam.BytecodeModule;
 const VirtualMachine = assam.VirtualMachine;
 
@@ -57,43 +57,4 @@ fn displayUsage(writer: anytype) !void {
 fn fatal(comptime format: []const u8, args: anytype) noreturn {
     std.log.err(format, args);
     process.exit(1);
-}
-
-test {
-    var builder = assam.ModuleBuilder.init(std.testing.allocator);
-    defer builder.deinit();
-
-    var result_addr = builder.allocateGlobalInt();
-
-    var add_block = assam.BlockBuilder.init(&builder);
-    var add_block_instructions = [_]assam.Instruction{
-        assam.Instruction{ .ptr_push = result_addr },
-        assam.Instruction{ .int_push = 0xDEAD_0000 },
-        assam.Instruction{ .int_push = 0x0000_BEEF },
-        assam.Instruction.int_or,
-        assam.Instruction.int_store,
-    };
-    try add_block.appendInstructions(add_block_instructions[0..]);
-    try builder.addBlock(add_block);
-
-    var start_block = assam.BlockBuilder.init(&builder);
-    var start_instructions = [_]assam.Instruction{
-        assam.Instruction{ .call = add_block.index },
-        assam.Instruction{ .ptr_push = result_addr },
-        assam.Instruction.int_load,
-        assam.Instruction{ .int_push = 0xDEADBEEF },
-        assam.Instruction.int_equal,
-        assam.Instruction.print,
-    };
-    try start_block.appendInstructions(start_instructions[0..]);
-    try builder.addBlock(start_block);
-    builder.setStartBlock(start_block);
-
-    var module = try builder.toBytecodeModule();
-    defer module.deinit(std.testing.allocator);
-
-    var vm = try assam.VirtualMachine.init(module, std.testing.allocator);
-    defer vm.deinit();
-
-    try vm.run();
 }

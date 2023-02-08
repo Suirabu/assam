@@ -233,7 +233,7 @@ pub const InstructionTag = enum(u8) {
             .ptr_add => Instruction.ptr_add,
             .ptr_subtract => Instruction.ptr_subtract,
             .ptr_equal => Instruction.ptr_equal,
-            .ptr_not_equal => Instruction.ptr_not_equals,
+            .ptr_not_equal => Instruction.ptr_not_equal,
             .ptr_to_int => Instruction.ptr_to_int,
             .call => Instruction{ .call = undefined },
             .call_if => Instruction{ .call_if = undefined },
