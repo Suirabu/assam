@@ -35,4 +35,22 @@ pub fn build(b: *std.build.Builder) void {
         const run_step = b.step("run-avm", "Run the Assam virtual machine");
         run_step.dependOn(&run_cmd.step);
     }
+
+    // Assam assembler
+    {
+        const assam_asm = b.addExecutable("assam-asm", "asm/main.zig");
+        assam_asm.setTarget(target);
+        assam_asm.setBuildMode(mode);
+        assam_asm.addPackage(assam);
+        assam_asm.install();
+
+        const run_cmd = assam_asm.run();
+        run_cmd.step.dependOn(b.getInstallStep());
+        if (b.args) |args| {
+            run_cmd.addArgs(args);
+        }
+
+        const run_step = b.step("run-asm", "Run the Assam assembler");
+        run_step.dependOn(&run_cmd.step);
+    }
 }
