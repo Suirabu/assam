@@ -276,7 +276,7 @@ pub fn instructionsToBytes(instructions: []Instruction, allocator: Allocator) ![
 
         switch (instruction) {
             .int_push => |value| try writer.writeIntBig(u64, value),
-            .float_push => |value| try writer.write(&@bitCast([@sizeOf(f64)]u8, value)),
+            .float_push => |value| _ = try writer.write(&@bitCast([@sizeOf(f64)]u8, value)),
             .bool_push => |value| try writer.writeByte(@boolToInt(value)),
             .ptr_push => |value| try writer.writeIntBig(u64, value),
             .call => |value| try writer.writeIntBig(u32, value),
