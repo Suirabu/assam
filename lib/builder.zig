@@ -15,7 +15,7 @@ pub const ModuleBuilder = struct {
     const Self = @This();
 
     allocator: Allocator,
-    global_memory_size: u32,
+    global_memory_size: u64,
     start_block_index: ?u32,
     next_block_builder_index: u32,
     block_builders: std.ArrayList(BlockBuilder),
