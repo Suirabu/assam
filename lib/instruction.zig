@@ -4,11 +4,12 @@ const Allocator = mem.Allocator;
 
 const assam = @import("assam.zig");
 const Value = assam.Value;
-const ValueTag = assam.ValueTag;
 
 pub const Block = []Instruction;
 
-pub const Instruction = union(InstructionTag) {
+pub const Instruction = union(enum(u8)) {
+    const Self = @This();
+
     // Int instructions
     int_push: u64,
 
@@ -93,96 +94,8 @@ pub const Instruction = union(InstructionTag) {
     drop,
     // TODO: Remove print instruction
     print,
-};
 
-pub const InstructionTag = enum(u8) {
-    const Self = @This();
-    // Int instructions
-    int_push,
-
-    int_add,
-    int_subtract,
-    int_multiply,
-    int_divide,
-    int_modulo,
-
-    int_and,
-    int_or,
-    int_xor,
-    int_not,
-    int_shift_left,
-    int_shift_right,
-
-    int_equal,
-    int_not_equal,
-
-    int_less,
-    int_less_equal,
-    int_greater,
-    int_greater_equal,
-
-    int_load,
-    int_store,
-
-    int_to_float,
-    int_to_ptr,
-
-    // Float instructions
-    float_push,
-
-    float_add,
-    float_subtract,
-    float_multiply,
-    float_divide,
-    float_modulo,
-
-    float_equal,
-    float_not_equal,
-
-    float_less,
-    float_less_equal,
-    float_greater,
-    float_greater_equal,
-
-    float_load,
-    float_store,
-
-    float_to_int,
-
-    // Boolean instructions
-    bool_push,
-
-    bool_and,
-    bool_or,
-    bool_not,
-
-    bool_equal,
-    bool_not_equal,
-
-    bool_load,
-    bool_store,
-
-    // Pointer instructions
-    ptr_push,
-
-    ptr_add,
-    ptr_subtract,
-
-    ptr_equal,
-    ptr_not_equal,
-
-    ptr_to_int,
-
-    // Branching
-    call,
-    call_if,
-
-    // Stack manipulation
-    drop,
-    // TODO: Remove print instruction
-    print,
-
-    pub fn toInstruction(self: Self) Instruction {
+    pub fn fromTag(self: std.meta.Tag(Self)) Self {
         return switch (self) {
             .int_push => Instruction{ .int_push = undefined },
             .int_add => Instruction.int_add,
@@ -250,7 +163,7 @@ pub fn instructionsFromBytes(bytes: []const u8, allocator: Allocator) ![]Instruc
     var instructions = std.ArrayList(Instruction).init(allocator);
 
     while (true) {
-        const tag = @intToEnum(InstructionTag, reader.readByte() catch break);
+        const tag = @intToEnum(std.meta.Tag(Instruction), reader.readByte() catch break);
         const instruction = switch (tag) {
             .int_push => Instruction{ .int_push = try reader.readIntBig(u64) },
             .float_push => Instruction{ .float_push = @bitCast(f64, try reader.readBytesNoEof(@sizeOf(f64))) },
@@ -258,7 +171,7 @@ pub fn instructionsFromBytes(bytes: []const u8, allocator: Allocator) ![]Instruc
             .ptr_push => Instruction{ .ptr_push = try reader.readIntBig(u64) },
             .call => Instruction{ .call = try reader.readIntBig(u32) },
             .call_if => Instruction{ .call_if = try reader.readIntBig(u32) },
-            else => tag.toInstruction(),
+            else => Instruction.fromTag(tag),
         };
         try instructions.append(instruction);
     }
@@ -271,8 +184,7 @@ pub fn instructionsToBytes(instructions: []Instruction, allocator: Allocator) ![
     var writer = byte_list.writer();
 
     for (instructions) |instruction| {
-        const tag: InstructionTag = instruction;
-        try writer.writeByte(@enumToInt(tag));
+        try writer.writeByte(@enumToInt(instruction));
 
         switch (instruction) {
             .int_push => |value| try writer.writeIntBig(u64, value),

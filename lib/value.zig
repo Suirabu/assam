@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub const Value = union(ValueTag) {
+pub const Value = union(enum(u8)) {
     const Self = @This();
 
     ptr: u64,
@@ -19,13 +19,4 @@ pub const Value = union(ValueTag) {
             Value.bool => |value| try writer.print("{s}", .{if (value) "true" else "false"}),
         }
     }
-};
-
-pub const ValueTag = enum(u8) {
-    ptr,
-
-    int,
-
-    float,
-    bool,
 };

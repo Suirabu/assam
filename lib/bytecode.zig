@@ -4,12 +4,10 @@ const Allocator = mem.Allocator;
 
 const assam = @import("assam.zig");
 const Instruction = assam.Instruction;
-const InstructionTag = assam.InstructionTag;
 const Block = assam.Block;
 const instructionsToBytes = assam.instructionsToBytes;
 const instructionsFromBytes = assam.instructionsFromBytes;
 const Value = assam.Value;
-const ValueTag = assam.ValueTag;
 
 pub const BytecodeModule = struct {
     const Self = @This();

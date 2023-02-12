@@ -4,7 +4,6 @@ const Allocator = std.mem.Allocator;
 const assam = @import("assam.zig");
 const Instruction = assam.Instruction;
 const Value = assam.Value;
-const ValueTag = assam.ValueTag;
 const BytecodeModule = assam.BytecodeModule;
 
 pub const VirtualMachine = struct {
