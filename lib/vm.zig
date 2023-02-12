@@ -256,6 +256,28 @@ pub const VirtualMachine = struct {
 
             // Stack manipulation
             .drop => _ = try self.pop(),
+            .dup => try self.push(try self.peek()),
+            .swap => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(b);
+                try self.push(a);
+            },
+            .over => {
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(a);
+                try self.push(b);
+                try self.push(a);
+            },
+            .rot => {
+                const c = try self.pop();
+                const b = try self.pop();
+                const a = try self.pop();
+                try self.push(b);
+                try self.push(c);
+                try self.push(a);
+            },
             .print => {
                 const value = try self.pop();
                 std.debug.print("{}\n", .{value});
@@ -325,6 +347,13 @@ pub const VirtualMachine = struct {
         if (offset + size > self.global_memory.len) {
             return VirtualMachineError.InvalidGlobalOffset;
         }
+    }
+
+    fn peek(self: Self) !Value {
+        if (self.data_stack.items.len == 0) {
+            return VirtualMachineError.StackUnderflow;
+        }
+        return self.data_stack.items[self.data_stack.items.len - 1];
     }
 };
 

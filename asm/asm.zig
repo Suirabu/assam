@@ -246,6 +246,10 @@ pub const Assembler = struct {
         .{ "call", Instruction{ .call = undefined } },
         .{ "call_if", Instruction{ .call_if = undefined } },
         .{ "drop", Instruction.drop },
+        .{ "dup", Instruction.dup },
+        .{ "swap", Instruction.swap },
+        .{ "over", Instruction.over },
+        .{ "rot", Instruction.rot },
         .{ "print", Instruction.print },
     });
 };

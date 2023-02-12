@@ -92,6 +92,11 @@ pub const Instruction = union(enum(u8)) {
 
     // Stack manipulation
     drop,
+    dup,
+    swap,
+    over,
+    rot,
+
     // TODO: Remove print instruction
     print,
 
@@ -151,6 +156,10 @@ pub const Instruction = union(enum(u8)) {
             .call => Instruction{ .call = undefined },
             .call_if => Instruction{ .call_if = undefined },
             .drop => Instruction.drop,
+            .dup => Instruction.dup,
+            .swap => Instruction.swap,
+            .over => Instruction.over,
+            .rot => Instruction.rot,
             .print => Instruction.print,
         };
     }
