@@ -5,12 +5,19 @@ const assam = @import("assam.zig");
 const Instruction = assam.Instruction;
 const Value = assam.Value;
 const BytecodeModule = assam.BytecodeModule;
+const Block = assam.Block;
+
+const BlockInstructionPointer = struct {
+    block: Block,
+    ip: u64, // Might be able to make this a `u32`
+};
 
 pub const VirtualMachine = struct {
     const Self = @This();
 
     module: BytecodeModule,
     data_stack: std.ArrayList(Value),
+    call_stack: std.ArrayList(BlockInstructionPointer),
     global_memory: []u8,
     allocator: Allocator,
 
@@ -22,6 +29,7 @@ pub const VirtualMachine = struct {
         return Self{
             .module = module,
             .data_stack = std.ArrayList(Value).init(allocator),
+            .call_stack = std.ArrayList(BlockInstructionPointer).init(allocator),
             .global_memory = global_memory,
             .allocator = allocator,
         };
@@ -29,13 +37,45 @@ pub const VirtualMachine = struct {
 
     pub fn deinit(self: *Self) void {
         self.data_stack.deinit();
+        self.call_stack.deinit();
         self.allocator.free(self.global_memory);
     }
 
     pub fn run(self: *Self) VirtualMachineError!void {
-        for (self.module.blocks[self.module.start_block_index]) |instruction| {
-            try self.executeInstruction(instruction);
+        try self.callBlock(self.module.start_block_index);
+        while (self.call_stack.items.len != 0) {
+            try self.executeNextInstruction();
         }
+    }
+
+    pub fn callBlock(self: *Self, block_index: u32) VirtualMachineError!void {
+        if (block_index >= self.module.blocks.len) {
+            return VirtualMachineError.InvalidBlockIndex;
+        }
+
+        const block_ip = BlockInstructionPointer{
+            .block = self.module.blocks[block_index],
+            .ip = 0,
+        };
+        self.call_stack.append(block_ip) catch {
+            return VirtualMachineError.OutOfMemory;
+        };
+    }
+
+    pub fn returnFromBlock(self: *Self) VirtualMachineError!void {
+        if (self.call_stack.popOrNull() == null) {
+            return VirtualMachineError.CallStackUnderflow;
+        }
+    }
+
+    pub fn executeNextInstruction(self: *Self) VirtualMachineError!void {
+        const block_ip = self.call_stack.items[self.call_stack.items.len - 1];
+        if (block_ip.ip >= block_ip.block.len) {
+            return self.returnFromBlock();
+        }
+        const instruction = block_ip.block[block_ip.ip];
+        self.call_stack.items[self.call_stack.items.len - 1].ip += 1; // TODO: Remove this junk
+        try self.executeInstruction(instruction);
     }
 
     pub fn executeInstruction(self: *Self, instruction: Instruction) VirtualMachineError!void {
@@ -240,17 +280,11 @@ pub const VirtualMachine = struct {
             .ptr_to_int => try self.pushInt(try self.popPtr()),
 
             // Branching
-            .call => |block_index| {
-                for (self.module.blocks[block_index]) |i| {
-                    try self.executeInstruction(i);
-                }
-            },
+            .call => |block_index| try self.callBlock(block_index),
             .call_if => |block_index| {
                 const condition = try self.popBool();
                 if (condition) {
-                    for (self.module.blocks[block_index]) |i| {
-                        try self.executeInstruction(i);
-                    }
+                    try self.callBlock(block_index);
                 }
             },
 
@@ -360,9 +394,11 @@ pub const VirtualMachine = struct {
 pub const VirtualMachineError = error{
     OutOfMemory,
     StackUnderflow,
+    CallStackUnderflow,
     DivideByZero,
     TypeError,
     MissingModule,
+    InvalidBlockIndex,
     InvalidGlobalOffset,
     UnsupportedIntegerType,
 };
