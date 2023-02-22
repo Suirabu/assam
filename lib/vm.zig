@@ -312,6 +312,7 @@ pub const VirtualMachine = struct {
                 try self.push(c);
                 try self.push(a);
             },
+            .block_return => try self.returnFromBlock(),
             .print => {
                 const value = try self.pop();
                 std.debug.print("{}\n", .{value});

@@ -250,6 +250,7 @@ pub const Assembler = struct {
         .{ "swap", Instruction.swap },
         .{ "over", Instruction.over },
         .{ "rot", Instruction.rot },
+        .{ "return", Instruction.block_return },
         .{ "print", Instruction.print },
     });
 };

@@ -89,6 +89,7 @@ pub const Instruction = union(enum(u8)) {
     // Branching
     call: u32,
     call_if: u32,
+    block_return,
 
     // Stack manipulation
     drop,
@@ -160,6 +161,7 @@ pub const Instruction = union(enum(u8)) {
             .swap => Instruction.swap,
             .over => Instruction.over,
             .rot => Instruction.rot,
+            .block_return => Instruction.block_return,
             .print => Instruction.print,
         };
     }
